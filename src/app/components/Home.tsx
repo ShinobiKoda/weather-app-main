@@ -4,6 +4,7 @@ import { IoIosSearch } from "react-icons/io";
 import Image from "next/image";
 import { BiChevronDown } from "react-icons/bi";
 import { motion } from "motion/react";
+import { useState } from "react";
 import {
   fadeInUp,
   staggerChildren,
@@ -11,6 +12,7 @@ import {
   fadeIn,
   bgFloat,
   sunBounceRotate,
+  chevronRotate,
 } from "./animations/motion";
 
 const properties = [
@@ -121,6 +123,7 @@ const hourly_forecast = [
 ];
 
 export function HomePage() {
+  const [dayOpen, setDayOpen] = useState(false);
   return (
     <motion.div
       className="w-full  text-white pb-10"
@@ -149,9 +152,13 @@ export function HomePage() {
                 placeholder="Search for a place..."
               />
             </div>
-            <button className="px-4 py-3 rounded-lg bg-blue-500 w-full lg:w-34 text-lg">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="px-4 py-3 rounded-lg bg-blue-500 w-full lg:w-34 text-lg"
+            >
               Search
-            </button>
+            </motion.button>
           </motion.div>
           <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 min-h-[700px]">
             <div className="mt-8 flex flex-col">
@@ -234,6 +241,8 @@ export function HomePage() {
                     key={index}
                     className="rounded-lg px-3 py-4 min-h-[120px] bg-neutral-800 flex flex-col justify-between border border-neutral-700"
                     variants={fadeInUp}
+                    whileHover={{ y: -6 }}
+                    whileTap={{ scale: 0.995 }}
                   >
                     <p className="font-medium text-base text-neutral-300">
                       {property.title}
@@ -252,6 +261,8 @@ export function HomePage() {
                       key={index}
                       className="rounded-lg px-3 py-4 min-h-[180px] bg-neutral-800 flex flex-col justify-between border border-neutral-700 items-center"
                       variants={fadeInUp}
+                      whileHover={{ y: -8, scale: 1.02 }}
+                      whileTap={{ scale: 0.995 }}
                     >
                       <p>{item.day}</p>
                       <Image
@@ -270,19 +281,34 @@ export function HomePage() {
               </div>
             </div>
             <div className="mt-8 flex flex-col max-h-full">
-              <button className="px-4 py-3 rounded-xl bg-blue-500 w-full lg:w-34 text-lg mb-8 hidden lg:block">
+              <motion.button
+                className="px-4 py-3 rounded-xl bg-blue-500 w-full lg:w-34 text-lg mb-8 hidden lg:block cursor-pointer"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
                 Search
-              </button>
+              </motion.button>
               <motion.div
                 className="bg-neutral-800 rounded-3xl px-6 py-8 flex flex-col flex-1"
                 variants={fadeIn}
               >
                 <div className="w-full flex items-center justify-between">
                   <h2 className="font-semibold text-lg">Hourly Forecast</h2>
-                  <div className="bg-neutral-600 flex items-center px-4 py-2 rounded-lg gap-2">
+                  <motion.div
+                    className="bg-neutral-600 flex items-center px-4 py-2 rounded-lg gap-2 cursor-pointer select-none"
+                    onClick={() => setDayOpen((s) => !s)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
                     <span className="font-normal text-lg">Tuesday</span>
-                    <BiChevronDown />
-                  </div>
+                    <motion.span
+                      variants={chevronRotate}
+                      initial="closed"
+                      animate={dayOpen ? "open" : "closed"}
+                    >
+                      <BiChevronDown />
+                    </motion.span>
+                  </motion.div>
                 </div>
                 <div className="space-y-4 mt-6">
                   {hourly_forecast.map((forecast, index) => (

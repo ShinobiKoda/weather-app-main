@@ -218,3 +218,8 @@ export const sunBounceRotate: Variants = {
     },
   },
 };
+
+export const chevronRotate: Variants = {
+  closed: { rotate: 0 },
+  open: { rotate: 180, transition: { duration: 0.28, ease: "easeInOut" } },
+};
