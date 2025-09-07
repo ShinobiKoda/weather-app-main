@@ -190,3 +190,31 @@ export const hCarouselSlide: Variants = {
   center: { x: "0%", opacity: 1, transition: carouselTransition },
   exit: { x: "-100%", opacity: 0, transition: carouselTransition },
 };
+
+export const bgFloat: Variants = {
+  hidden: { opacity: 0.95, y: 0 },
+  visible: {
+    opacity: 1,
+    y: [0, -8, 0, 6, 0],
+    transition: {
+      duration: 8,
+      ease: "easeInOut",
+      repeat: Infinity,
+      repeatType: "loop",
+    },
+  },
+};
+
+export const sunBounceRotate: Variants = {
+  hidden: { y: 0, rotate: 0 },
+  visible: {
+    y: [0, -14, 0],
+    rotate: [0, 6, 0, -6, 0],
+    transition: {
+      duration: 2.4,
+      ease: "easeInOut",
+      repeat: Infinity,
+      repeatType: "loop",
+    },
+  },
+};
