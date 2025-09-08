@@ -89,42 +89,42 @@ const forecast = [
 
 const hourly_forecast = [
   {
-    time: "3PM",
+    time: "3 PM",
     temp: "20°",
     weather: "/images/icon-overcast.webp",
   },
   {
-    time: "4PM",
+    time: "4 PM",
     temp: "20°",
     weather: "/images/icon-overcast.webp",
   },
   {
-    time: "5PM",
+    time: "5 PM",
     temp: "20°",
     weather: "/images/icon-overcast.webp",
   },
   {
-    time: "6PM",
+    time: "6 PM",
     temp: "19",
     weather: "/images/icon-overcast.webp",
   },
   {
-    time: "7PM",
+    time: "7 PM",
     temp: "18°",
     weather: "/images/icon-overcast.webp",
   },
   {
-    time: "8PM",
+    time: "8 PM",
     temp: "18°",
     weather: "/images/icon-overcast.webp",
   },
   {
-    time: "9PM",
+    time: "9 PM",
     temp: "20°",
     weather: "/images/icon-overcast.webp",
   },
   {
-    time: "10PM",
+    time: "10 PM",
     temp: "20°",
     weather: "/images/icon-overcast.webp",
   },
@@ -149,7 +149,7 @@ export function HomePage() {
         </motion.h1>
         <div className="mt-12">
           <motion.div
-            className="flex flex-col lg:flex-row lg:items-center gap-3 lg:justify-center max-w-[800px] mx-auto lg:hidden"
+            className="flex flex-col lg:flex-row lg:items-center gap-4 lg:justify-center max-w-[1024px] mx-auto md:grid md:grid-cols-[3fr_1fr] lg:hidden items-center xl:hidden"
             variants={slideInFromRight}
           >
             <div className="w-full flex items-center bg-neutral-800 rounded-xl p-4 gap-2 text-xl text-neutral-200">
@@ -241,7 +241,7 @@ export function HomePage() {
                 </div>
               </motion.div>
               <motion.div
-                className="mt-5 w-full grid grid-cols-2 gap-4 lg:grid-cols-4"
+                className="mt-5 w-full grid grid-cols-2 gap-4 md:grid-cols-4"
                 variants={staggerChildren}
               >
                 {properties.map((property, index) => (
@@ -263,7 +263,7 @@ export function HomePage() {
               </motion.div>
               <div className="mt-8">
                 <h2 className="font-semibold text-xl">Daily Forecast</h2>
-                <div className="grid grid-cols-3 lg:grid-cols-7 gap-4 mt-5">
+                <div className="grid grid-cols-3 md:grid-cols-7 gap-4 mt-5">
                   {forecast.map((item, index) => (
                     <motion.div
                       key={index}
@@ -325,7 +325,7 @@ export function HomePage() {
                       className="rounded-lg bg-neutral-700 flex items-center justify-between px-4 h-[60px] border border-neutral-600"
                       variants={fadeInUp}
                     >
-                      <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
                         <Image
                           src={forecast.weather}
                           alt="Weather"
@@ -334,7 +334,7 @@ export function HomePage() {
                         />
                         <p className="font-medium text-xl">{forecast.time}</p>
                       </div>
-                      <p className="font-normal text-base">{forecast.temp}</p>
+                      <p className="font-medium text-base">{forecast.temp}</p>
                     </motion.div>
                   ))}
                 </div>
