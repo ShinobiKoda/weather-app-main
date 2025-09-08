@@ -13,13 +13,13 @@ export function Navbar() {
     <nav className="w-full max-w-[1440px] mx-auto p-4 md:px-8 lg:px-12 flex items-center justify-between">
       <Image src="/images/logo.svg" alt="Logo" width={150} height={100} />
       <motion.div
-        className="flex items-center gap-1 rounded-md bg-neutral-600 px-2 py-3 cursor-pointer select-none"
+        className="flex items-center gap-1.5 rounded-md bg-neutral-600 px-2 py-3 cursor-pointer select-none"
         onClick={() => setOpen((s) => !s)}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
         <IoSettingsOutline size={20} />
-        <span>Units</span>
+        <span className="font-medium text-sm">Units</span>
         <motion.span
           variants={chevronRotate}
           initial="closed"

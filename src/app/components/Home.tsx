@@ -5,6 +5,14 @@ import Image from "next/image";
 import { BiChevronDown } from "react-icons/bi";
 import { motion } from "motion/react";
 import { useState } from "react";
+import { Bricolage_Grotesque } from "next/font/google";
+
+const bricolage_grotesque = Bricolage_Grotesque({
+  variable: "--font-bricolage_grotesque",
+  subsets: ["latin"],
+  weight: ["300", "500", "600", "700"],
+});
+
 import {
   fadeInUp,
   staggerChildren,
@@ -134,28 +142,28 @@ export function HomePage() {
       <Navbar />
       <div className="w-full px-4 max-w-[1440px] mx-auto md:px-8 lg:px-12">
         <motion.h1
-          className="text-center text-5xl lg:text-7xl font-extrabold mt-10"
+          className={` ${bricolage_grotesque.className} text-center text-[52px] lg:text-7xl font-bold mt-12`}
           variants={fadeInUp}
         >
           How&apos;s the sky looking today?
         </motion.h1>
-        <div className="mt-15">
+        <div className="mt-12">
           <motion.div
-            className="flex flex-col lg:flex-row lg:items-center gap-4 lg:justify-center max-w-[800px] mx-auto lg:hidden"
+            className="flex flex-col lg:flex-row lg:items-center gap-3 lg:justify-center max-w-[800px] mx-auto lg:hidden"
             variants={slideInFromRight}
           >
-            <div className="w-full flex items-center bg-neutral-700 rounded-lg px-4 py-3 gap-2 text-base">
-              <IoIosSearch size={25} />
+            <div className="w-full flex items-center bg-neutral-800 rounded-xl p-4 gap-2 text-xl text-neutral-200">
+              <IoIosSearch size={35} />
               <input
                 type="text"
-                className="border-none outline-none placeholder:text-neutral-300 placeholder:text-lg w-full"
+                className="border-none outline-none placeholder:text-neutral-200 placeholder:text-xl w-full"
                 placeholder="Search for a place..."
               />
             </div>
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="px-4 py-3 rounded-lg bg-blue-500 w-full lg:w-34 text-lg"
+              className="p-4 rounded-xl bg-blue-500 w-full lg:w-34 text-xl font-medium"
             >
               Search
             </motion.button>
@@ -163,7 +171,7 @@ export function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 min-h-[700px]">
             <div className="mt-8 flex flex-col">
               <motion.div
-                className="w-full items-center bg-neutral-700 rounded-xl px-4 py-4 gap-2 text-base mb-8 max-w-[500px] ml-auto hidden lg:flex"
+                className="w-full items-center bg-neutral-800 rounded-xl p-4 gap-2 text-xl text-neutral-200 mb-8 max-w-[500px] ml-auto hidden lg:flex"
                 variants={slideInFromRight}
               >
                 <IoIosSearch size={25} />
@@ -174,16 +182,16 @@ export function HomePage() {
                 />
               </motion.div>
               <motion.div
-                className="bg-cover bg-center h-[300px] rounded-3xl flex flex-col items-center justify-center lg:hidden relative overflow-hidden"
+                className="bg-cover bg-center h-[286] rounded-[20px] flex flex-col items-center justify-center lg:hidden relative overflow-hidden"
                 style={{
                   backgroundImage: "url('/images/bg-today-small.svg')",
                 }}
                 variants={bgFloat}
               >
-                <h2 className="font-bold text-xl">
+                <h2 className="font-bold text-[28px]">
                   <span>Berlin</span>,<span> Germany</span>
                 </h2>
-                <p className="font-normal text-lg text-neutral-300">
+                <p className="font-medium text-lg opacity-80">
                   Tuesday, August 5, 2025
                 </p>
                 <div className="flex items-center justify-between">
@@ -198,7 +206,7 @@ export function HomePage() {
                       height={100}
                     />
                   </motion.div>
-                  <p className="text-8xl font-extrabold italic">68°</p>
+                  <p className="text-[96px] font-semibold italic">68°</p>
                 </div>
               </motion.div>
               <motion.div
@@ -233,47 +241,47 @@ export function HomePage() {
                 </div>
               </motion.div>
               <motion.div
-                className="mt-6 w-full grid grid-cols-2 gap-5 lg:grid-cols-4"
+                className="mt-5 w-full grid grid-cols-2 gap-4 lg:grid-cols-4"
                 variants={staggerChildren}
               >
                 {properties.map((property, index) => (
                   <motion.div
                     key={index}
-                    className="rounded-lg px-3 py-4 min-h-[120px] bg-neutral-800 flex flex-col justify-between border border-neutral-700"
+                    className="rounded-xl px-5 py-4 min-h-[118px] bg-neutral-800 flex flex-col justify-between border border-neutral-600"
                     variants={fadeInUp}
                     whileHover={{ y: -6 }}
                     whileTap={{ scale: 0.995 }}
                   >
-                    <p className="font-medium text-base text-neutral-300">
+                    <p className="font-medium text-lg text-neutral-200">
                       {property.title}
                     </p>
-                    <p className="text-white font-mediun text-3xl">
+                    <p className="text-white font-light text-[32px]">
                       {property.value}
                     </p>
                   </motion.div>
                 ))}
               </motion.div>
               <div className="mt-8">
-                <h2 className="font-semibold text-lg">Daily Forecast</h2>
-                <div className="grid grid-cols-3 lg:grid-cols-7 gap-5 mt-5">
+                <h2 className="font-semibold text-xl">Daily Forecast</h2>
+                <div className="grid grid-cols-3 lg:grid-cols-7 gap-4 mt-5">
                   {forecast.map((item, index) => (
                     <motion.div
                       key={index}
-                      className="rounded-lg px-3 py-4 min-h-[180px] bg-neutral-800 flex flex-col justify-between border border-neutral-700 items-center"
+                      className="rounded-xl px-[10px] py-4 min-h-[165px] bg-neutral-800 flex flex-col justify-between border border-neutral-600 items-center"
                       variants={fadeInUp}
                       whileHover={{ y: -8, scale: 1.02 }}
                       whileTap={{ scale: 0.995 }}
                     >
-                      <p>{item.day}</p>
+                      <p className="font-medium text-lg">{item.day}</p>
                       <Image
                         src={item.icon}
                         alt="Weather"
                         width={50}
                         height={50}
                       />
-                      <p className="w-full flex items-center justify-between">
-                        <span>{item.temp}</span>
-                        <span>{item.other_temp}</span>
+                      <p className="w-full flex items-center justify-between font-medium text-base">
+                        <span className="">{item.temp}</span>
+                        <span className="text-neutral-200">{item.other_temp}</span>
                       </p>
                     </motion.div>
                   ))}
@@ -289,18 +297,18 @@ export function HomePage() {
                 Search
               </motion.button>
               <motion.div
-                className="bg-neutral-800 rounded-3xl px-6 py-8 flex flex-col flex-1"
+                className="bg-neutral-800 rounded-[20px] px-6 py-8 flex flex-col flex-1"
                 variants={fadeIn}
               >
                 <div className="w-full flex items-center justify-between">
-                  <h2 className="font-semibold text-lg">Hourly Forecast</h2>
+                  <h2 className="font-semibold text-xl">Hourly Forecast</h2>
                   <motion.div
                     className="bg-neutral-600 flex items-center px-4 py-2 rounded-lg gap-2 cursor-pointer select-none"
                     onClick={() => setDayOpen((s) => !s)}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
-                    <span className="font-normal text-lg">Tuesday</span>
+                    <span className="font-medium text-base">Tuesday</span>
                     <motion.span
                       variants={chevronRotate}
                       initial="closed"
@@ -310,11 +318,11 @@ export function HomePage() {
                     </motion.span>
                   </motion.div>
                 </div>
-                <div className="space-y-4 mt-6">
+                <div className="space-y-4 mt-4">
                   {hourly_forecast.map((forecast, index) => (
                     <motion.div
                       key={index}
-                      className="rounded-xl bg-neutral-700 flex items-center justify-between px-4 py-2 border border-neutral-600"
+                      className="rounded-lg bg-neutral-700 flex items-center justify-between px-4 h-[60px] border border-neutral-600"
                       variants={fadeInUp}
                     >
                       <div className="flex items-center gap-4">
@@ -324,9 +332,9 @@ export function HomePage() {
                           width={50}
                           height={50}
                         />
-                        <p className="font-semibold">{forecast.time}</p>
+                        <p className="font-medium text-xl">{forecast.time}</p>
                       </div>
-                      <p className="font-medium">{forecast.temp}</p>
+                      <p className="font-normal text-base">{forecast.temp}</p>
                     </motion.div>
                   ))}
                 </div>
