@@ -6,7 +6,6 @@ import { BiChevronDown } from "react-icons/bi";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { ClipLoader } from "react-spinners";
-import { SearchDropdown } from "./SearchDropdown";
 import fetchWeather, {
   WeatherPayload,
   DailyForecastItem,
@@ -36,6 +35,27 @@ export function HomePage() {
   const [loading, setLoading] = useState(false);
   const [weather, setWeather] = useState<WeatherPayload | null>(null);
   const [location, setLocation] = useState<string>("");
+  const [suggestions, setSuggestions] = useState<
+    Array<{
+      id: string;
+      name: string;
+      latitude: number;
+      longitude: number;
+      country?: string;
+    }>
+  >([]);
+  const [suggestionLoading, setSuggestionLoading] = useState(false);
+
+  // Geocoding result shape (partial) to avoid using `any`
+  type GeoResult = {
+    latitude: number | string;
+    longitude: number | string;
+    name?: string;
+    country?: string;
+    locality?: string;
+    admin1?: string;
+    display_name?: string;
+  };
 
   function formatLongDate(isoOrDate?: string | Date) {
     const d = isoOrDate ? new Date(isoOrDate) : new Date();
@@ -48,44 +68,41 @@ export function HomePage() {
   }
 
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    if (!navigator.geolocation) {
+      setLocation("Geolocation not supported");
+      return;
+    }
+
     setLoading(true);
+
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         try {
           const lat = pos.coords.latitude;
           const lon = pos.coords.longitude;
+
           const data = await fetchWeather(lat, lon);
           setWeather(data);
-          try {
-            const rev = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`
-            );
-            const revJson = await rev.json();
-            const addr = revJson.address || {};
-            const place =
-              addr.city || addr.town || addr.village || addr.county || "";
-            const country = addr.country || "";
-            if (place && country) setLocation(`${place}, ${country}`);
-            else if (revJson.display_name)
-              setLocation(
-                String(revJson.display_name)
-                  .split(",")
-                  .slice(0, 2)
-                  .join(",")
-                  .trim()
-              );
-          } catch {
-            // ignore reverse geocode errors
+
+          const res = await fetch(`http://ip-api.com/json/`);
+          const geo = await res.json();
+
+          if (geo.status === "success") {
+            setLocation(`${geo.city}, ${geo.country}`);
+          } else {
+            setLocation(`Lat: ${lat}, Lon: ${lon}`);
           }
         } catch (e) {
-          console.error(e);
+          console.error("Error:", e);
+          setLocation("Unknown location");
         } finally {
           setLoading(false);
         }
       },
-      () => {
+      (err) => {
+        console.error("Geolocation error:", err);
         setLoading(false);
+        setLocation("Unknown location");
       }
     );
   }, []);
@@ -131,6 +148,72 @@ export function HomePage() {
       setLoading(false);
     }
   }
+
+  // Debounced suggestions for the search input
+  useEffect(() => {
+    if (!query || query.trim().length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    const id = setTimeout(async () => {
+      setSuggestionLoading(true);
+      try {
+        const res = await fetch(
+          `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
+            query
+          )}&count=6&language=en`,
+          { signal: controller.signal }
+        );
+        if (!res.ok) {
+          setSuggestions([]);
+          return;
+        }
+        const json = await res.json();
+        const results = Array.isArray(json?.results) ? json.results : [];
+        setSuggestions(
+          results.map((r: GeoResult) => ({
+            id: `${r.latitude}-${r.longitude}-${r.name}`,
+            name: (r.name || "") + (r.country ? `, ${r.country}` : ""),
+            latitude: Number(r.latitude),
+            longitude: Number(r.longitude),
+            country: r.country,
+          }))
+        );
+      } catch {
+        // ignore aborted or network errors
+      } finally {
+        setSuggestionLoading(false);
+      }
+    }, 300);
+
+    return () => {
+      controller.abort();
+      clearTimeout(id);
+    };
+  }, [query]);
+
+  async function selectSuggestion(item: {
+    id: string;
+    name: string;
+    latitude: number;
+    longitude: number;
+    country?: string;
+  }) {
+    setLocation(item.name);
+    setQuery("");
+    setSuggestions([]);
+    setLoading(true);
+    try {
+      const data = await fetchWeather(item.latitude, item.longitude);
+      setWeather(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }
   return (
     <motion.div
       className="w-full  text-white pb-10"
@@ -167,24 +250,66 @@ export function HomePage() {
               className="p-4 rounded-xl bg-blue-500 w-full lg:w-34 text-xl font-medium"
               onClick={handleSearch}
             >
-              {loading ? <ClipLoader size={20} color="#fff" /> : "Search"}
+              Search
             </motion.button>
           </motion.div>
           <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 min-h-[700px]">
             <div className="mt-8 flex flex-col">
-              <motion.div
-                className="w-full items-center bg-neutral-800 rounded-xl p-4 gap-2 text-xl text-neutral-200 font-medium mb-8 lg:mb-12 max-w-[500px] ml-auto hidden lg:flex"
-                variants={slideInFromRight}
-              >
-                <IoIosSearch size={25} />
-                <input
-                  value={query ?? ""}
-                  onChange={(e) => setQuery(e.target.value)}
-                  type="text"
-                  className="border-none outline-none placeholder:text-neutral-300 placeholder:text-lg w-full"
-                  placeholder="Search for a place..."
-                />
-              </motion.div>
+              <div className="w-full lg:max-w-[500px] ml-auto relative">
+                <div className="w-full flex flex-col mb-8 lg:mb-12 gap-3.5">
+                  <motion.div
+                    className="w-full items-center bg-neutral-800 rounded-xl p-4 gap-2 text-xl text-neutral-200 font-medium max-w-[500px] ml-auto hidden lg:flex"
+                    variants={slideInFromRight}
+                  >
+                    <IoIosSearch size={25} />
+                    <input
+                      value={query ?? ""}
+                      onChange={(e) => setQuery(e.target.value)}
+                      type="text"
+                      className="border-none outline-none placeholder:text-neutral-300 placeholder:text-lg w-full"
+                      placeholder="Search for a place..."
+                    />
+                  </motion.div>
+                  <div
+                    className={`${
+                      suggestions.length === 0 && !suggestionLoading
+                        ? "hidden"
+                        : ""
+                    } bg-neutral-800 border border-neutral-700 rounded-xl w-full p-4 absolute -top-25 md:-top-4 lg:top-19 z-30`}
+                    role="listbox"
+                    aria-label="location-suggestions"
+                  >
+                    <p className="font-medium text-base flex items-center gap-2">
+                      {suggestionLoading ? (
+                        <ClipLoader color="white" size={20} />
+                      ) : (
+                        <ClipLoader color="white" size={20} />
+                      )}
+                      <span className="text-right">City</span>
+                    </p>
+                    <div className="w-full text-right">
+                      {suggestions.length === 0 ? (
+                        <div className="text-sm text-neutral-400">
+                          No suggestions
+                        </div>
+                      ) : (
+                        <ul className="space-y-2 mt-2 max-h-[164px] overflow-y-scroll">
+                          {suggestions.map((s) => (
+                            <li key={s.id}>
+                              <button
+                                onClick={() => selectSuggestion(s)}
+                                className="w-full text-left text-base font-medium hover:bg-neutral-700 hover:border border-neutral-600 rounded-lg px-2 py-2.5"
+                              >
+                                {s.name}
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
               <motion.div
                 className="bg-cover bg-center h-[286px] rounded-[20px] flex flex-col items-center justify-center lg:hidden relative overflow-hidden px-[24.5px]"
                 style={{
@@ -192,13 +317,9 @@ export function HomePage() {
                 }}
                 variants={bgFloat}
               >
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 text-center mt-[41px]">
                   <h2 className="font-bold text-[28px]">
-                    <span>
-                      {loading
-                        ? "Detecting..."
-                        : location || "Unknown location"}
-                    </span>
+                    <span>{loading ? "--" : location || "Here"}</span>
                   </h2>
                   <p className="font-medium text-lg opacity-80">
                     {loading
@@ -411,7 +532,7 @@ export function HomePage() {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleSearch}
               >
-                {loading ? <ClipLoader size={18} color="#fff" /> : "Search"}
+                Search
               </motion.button>
               <motion.div
                 className="bg-neutral-800 rounded-[20px] px-6 py-8 flex flex-col flex-1"
@@ -481,9 +602,6 @@ export function HomePage() {
               </motion.div>
             </div>
           </div>
-        </div>
-        <div className="mt-16">
-          <SearchDropdown />
         </div>
       </div>
     </motion.div>

@@ -34,8 +34,6 @@ export type WeatherPayload = {
 };
 
 function weatherCodeToIcon(code: number) {
-  // Map Open-Meteo / WMO weather codes to local icon filenames in /public/images
-  // codes reference: https://open-meteo.com/en/docs#api_form
   if (code === 0) return "/images/icon-sunny.webp"; // clear
   if (code === 1 || code === 2 || code === 3)
     return "/images/icon-partly-cloudy.webp"; // mainly clear / partly cloudy
@@ -53,17 +51,40 @@ function weatherCodeToIcon(code: number) {
   return "/images/icon-overcast.webp"; // fallback
 }
 
-/**
- * Fetch weather data from Open-Meteo and return a normalized payload suitable for the homepage.
- * Inputs: latitude, longitude. timezone defaults to 'auto' which Open-Meteo accepts.
- */
+export async function reverseGeocode(
+  lat: number,
+  lon: number
+): Promise<string> {
+  try {
+    const url = `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${encodeURIComponent(
+      lat
+    )}&longitude=${encodeURIComponent(lon)}&count=1&language=en`;
+    const res = await fetch(url);
+    if (!res.ok) {
+      return "Unknown location";
+    }
+    const data = await res.json();
+    const first = data.results?.[0];
+    if (!first) return "Unknown location";
+    const place =
+      first.name || first.locality || first.admin1 || first.county || "";
+    const country = first.country || "";
+    if (place && country) return `${place}, ${country}`;
+    if (place) return String(place);
+    if (first.display_name)
+      return String(first.display_name).split(",").slice(0, 2).join(",").trim();
+    return "Unknown location";
+  } catch {
+    return "Unknown location";
+  }
+}
+
 export async function fetchWeather(
   latitude: number,
   longitude: number,
   timezone = "auto"
 ): Promise<WeatherPayload> {
   const url = new URL("https://api.open-meteo.com/v1/forecast");
-  // request current weather, hourly (temperature, humidity, precipitation, weathercode), daily (min/max temps, weathercode)
   url.searchParams.set("latitude", String(latitude));
   url.searchParams.set("longitude", String(longitude));
   url.searchParams.set("current_weather", "true");
@@ -90,7 +111,6 @@ export async function fetchWeather(
 
   const data = await res.json();
 
-  // Defensive checks
   if (!data || !data.current_weather || !data.hourly) {
     throw new Error("Unexpected Open-Meteo response shape");
   }
@@ -105,7 +125,6 @@ export async function fetchWeather(
     time: String(data.current_weather.time),
   };
 
-  // Build hourly array (limit to next 24 hours to keep it reasonable)
   const hourlyTimes: string[] = data.hourly.time || [];
   const hourlyTemps: number[] = (data.hourly.temperature_2m || []).map(Number);
   const hourlyWeathercodes: number[] = (data.hourly.weathercode || []).map(
@@ -137,7 +156,6 @@ export async function fetchWeather(
     icon: weatherCodeToIcon(Number(dailyWeathercodes[i] ?? 0)),
   }));
 
-  // Properties: feels_like (use current apparent temperature if available), humidity (current hour), wind, precipitation (current hour)
   let feels_like: number | null = null;
   const apparentTemps: number[] = (data.hourly.apparent_temperature || []).map(
     Number
@@ -149,7 +167,6 @@ export async function fetchWeather(
     Number
   );
 
-  // find index of current time in hourly.time
   const currentIndex = hourlyTimes.indexOf(current.time);
   if (currentIndex >= 0) {
     feels_like = Number.isFinite(apparentTemps[currentIndex])
