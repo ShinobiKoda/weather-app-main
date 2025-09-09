@@ -51,7 +51,6 @@ function weatherCodeToIcon(code: number) {
   return "/images/icon-overcast.webp"; // fallback
 }
 
-
 export async function fetchWeather(
   latitude: number,
   longitude: number,
@@ -140,7 +139,22 @@ export async function fetchWeather(
     Number
   );
 
-  const currentIndex = hourlyTimes.indexOf(current.time);
+  let currentIndex = -1;
+  const currentDate = new Date(current.time);
+  if (!isNaN(currentDate.getTime())) {
+    let minDiff = Infinity;
+    for (let i = 0; i < hourlyTimes.length; i++) {
+      const t = new Date(hourlyTimes[i]);
+      if (isNaN(t.getTime())) continue;
+      const diff = Math.abs(t.getTime() - currentDate.getTime());
+      if (diff < minDiff) {
+        minDiff = diff;
+        currentIndex = i;
+      }
+    }
+  } else {
+    currentIndex = hourlyTimes.indexOf(current.time);
+  }
   if (currentIndex >= 0) {
     feels_like = Number.isFinite(apparentTemps[currentIndex])
       ? apparentTemps[currentIndex]

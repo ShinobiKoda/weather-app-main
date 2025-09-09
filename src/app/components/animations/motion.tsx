@@ -223,3 +223,18 @@ export const chevronRotate: Variants = {
   closed: { rotate: 0 },
   open: { rotate: 180, transition: { duration: 0.28, ease: "easeInOut" } },
 };
+
+export const dropdownMenu: Variants = {
+  hidden: {
+    opacity: 0,
+    y: -8,
+    scale: 0.98,
+    transition: { duration: 0.25, ease: "easeOut" },
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { duration: 0.18, ease: "easeOut" },
+  },
+};
