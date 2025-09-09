@@ -28,6 +28,9 @@ export function Navbar() {
           <BiChevronDown size={20} />
         </motion.span>
       </motion.div>
+      <div className="bg-neutral-800 border-neutral-600 rounded-xl px-4 py-2.5">
+        <h3>Switch to Imperial</h3>
+      </div>
     </nav>
   );
 }

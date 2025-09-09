@@ -366,7 +366,7 @@ export function HomePage() {
                   <h2 className="font-bold text-xl">
                     <span>
                       {loading
-                        ? "Detecting..."
+                        ? "--"
                         : location || "Unknown location"}
                     </span>
                   </h2>
