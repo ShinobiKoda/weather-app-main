@@ -51,33 +51,6 @@ function weatherCodeToIcon(code: number) {
   return "/images/icon-overcast.webp"; // fallback
 }
 
-export async function reverseGeocode(
-  lat: number,
-  lon: number
-): Promise<string> {
-  try {
-    const url = `https://geocoding-api.open-meteo.com/v1/reverse?latitude=${encodeURIComponent(
-      lat
-    )}&longitude=${encodeURIComponent(lon)}&count=1&language=en`;
-    const res = await fetch(url);
-    if (!res.ok) {
-      return "Unknown location";
-    }
-    const data = await res.json();
-    const first = data.results?.[0];
-    if (!first) return "Unknown location";
-    const place =
-      first.name || first.locality || first.admin1 || first.county || "";
-    const country = first.country || "";
-    if (place && country) return `${place}, ${country}`;
-    if (place) return String(place);
-    if (first.display_name)
-      return String(first.display_name).split(",").slice(0, 2).join(",").trim();
-    return "Unknown location";
-  } catch {
-    return "Unknown location";
-  }
-}
 
 export async function fetchWeather(
   latitude: number,
