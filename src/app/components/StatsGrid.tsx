@@ -24,8 +24,8 @@ export default function StatsGrid({ weather, loading }: Props) {
         <p className="text-white font-light text-[32px]">
           {loading
             ? "--"
-            : weather?.properties.feels_like
-            ? `${Math.round(weather.properties.feels_like)}°`
+            : Number.isFinite(weather?.properties.feels_like as number)
+            ? `${Math.round(weather!.properties.feels_like!)}°`
             : "--"}
         </p>
       </motion.div>
@@ -40,8 +40,8 @@ export default function StatsGrid({ weather, loading }: Props) {
         <p className="text-white font-light text-[32px]">
           {loading
             ? "--"
-            : weather?.properties.humidity
-            ? `${Math.round(weather.properties.humidity)}%`
+            : Number.isFinite(weather?.properties.humidity as number)
+            ? `${Math.round(weather!.properties.humidity!)}%`
             : "--"}
         </p>
       </motion.div>
@@ -56,8 +56,8 @@ export default function StatsGrid({ weather, loading }: Props) {
         <p className="text-white font-light text-[32px]">
           {loading
             ? "--"
-            : weather?.properties.wind
-            ? `${Math.round(weather.properties.wind)} km/h`
+            : Number.isFinite(weather?.properties.wind as number)
+            ? `${Math.round(weather!.properties.wind!)} km/h`
             : "--"}
         </p>
       </motion.div>
@@ -72,8 +72,8 @@ export default function StatsGrid({ weather, loading }: Props) {
         <p className="text-white font-light text-[32px]">
           {loading
             ? "--"
-            : weather?.properties.precipitation
-            ? `${weather.properties.precipitation} mm`
+            : Number.isFinite(weather?.properties.precipitation as number)
+            ? `${weather!.properties.precipitation} mm`
             : "--"}
         </p>
       </motion.div>

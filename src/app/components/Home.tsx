@@ -241,7 +241,7 @@ export function HomePage() {
               <div className="w-full lg:max-w-[500px] ml-auto relative">
                 <div className="w-full flex flex-col mb-8 lg:mb-12 gap-3.5">
                   <motion.div
-                    className="w-full items-center bg-neutral-800 rounded-xl p-4 gap-2 text-xl text-neutral-200 font-medium max-w-[500px] ml-auto hidden lg:flex"
+                    className="w-full items-center bg-neutral-800 rounded-xl p-4 gap-2 text-xl text-neutral-200 font-medium max-w-[500px] ml-auto hidden lg:flex focus:outline-none focus:ring-2 focus:ring-white" tabIndex={0}
                     variants={slideInFromRight}
                   >
                     <SearchBar

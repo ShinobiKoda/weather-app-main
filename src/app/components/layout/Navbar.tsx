@@ -18,7 +18,9 @@ export function Navbar() {
       <Image src="/images/logo.svg" alt="Logo" width={150} height={100} />
       <div className="relative">
         <motion.div
-          className="flex items-center gap-1.5 rounded-md bg-neutral-600 px-2 py-3 cursor-pointer select-none"
+          className={`flex items-center gap-1.5 rounded-md bg-neutral-600 px-2 py-3 cursor-pointer select-none ${
+            open ? "ring-2 ring-white" : ""
+          }`}
           onClick={() => setOpen((s) => !s)}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -36,14 +38,13 @@ export function Navbar() {
           </motion.span>
         </motion.div>
 
-        {/* Units drop down - positioned under the button */}
         <motion.div
           className="absolute right-0 mt-2 bg-neutral-800 border border-neutral-600 rounded-xl px-4 py-2.5 min-w-[214px] z-20"
           variants={dropdownMenu}
           initial="hidden"
           animate={open ? "visible" : "hidden"}
         >
-          <h3 className="font-medium text-base mb-3.5">Switch to Imperial</h3>
+          <h3 className="font-medium text-base mb-3.5">Switch to Metric</h3>
           <div className="space-y-2">
             <h4 className="font-medium text-sm text-neutral-300">
               Temperature
