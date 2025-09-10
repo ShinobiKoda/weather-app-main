@@ -101,6 +101,18 @@ export default function HourlyForecast({
     return label.length > 7 ? label.slice(0, 7) + "…" : label;
   }, [selectedDay]);
 
+  const [playStagger, setPlayStagger] = useState(false);
+
+  useEffect(() => {
+    if (!hoursToShow || hoursToShow.length === 0) {
+      setPlayStagger(false);
+      return;
+    }
+    setPlayStagger(false);
+    const id = window.setTimeout(() => setPlayStagger(true), 30);
+    return () => window.clearTimeout(id);
+  }, [selectedDay, hoursToShow]);
+
   return (
     <motion.div
       className="bg-neutral-800 rounded-[20px] px-6 py-8 flex flex-col flex-1"
@@ -163,16 +175,18 @@ export default function HourlyForecast({
       <motion.div
         className="space-y-4 mt-4"
         variants={staggerChildren}
-        initial="hidden"
-        animate="visible"
+        initial={false}
+        animate={playStagger || (loading && !weather) ? "visible" : "hidden"}
+        key={selectedDay + "-" + (hoursToShow ? hoursToShow.length : 0)}
       >
         {loading && !weather
           ? Array.from({ length: 8 }).map((_, i) => (
               <motion.div
                 key={i}
-                className="rounded-lg bg-neutral-700 flex items-center justify-between px-4 h-[60px] border border-neutral-600"
+                className="rounded-lg bg-neutral-700 flex items-center justify-between px-4 h-[60px] border border-neutral-600 skeleton"
                 variants={fadeInUp}
               >
+                <div className="shimmer" />
                 <div className="flex items-center gap-2">
                   <p className="font-medium text-xl">--</p>
                 </div>

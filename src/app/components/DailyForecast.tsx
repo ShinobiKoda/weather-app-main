@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "motion/react";
-import { fadeInUp } from "./animations/motion";
+import { fadeInUp, staggerChildren } from "./animations/motion";
 import Image from "next/image";
 import { DailyForecastItem } from "../api/open-meto";
 import { convertTemp } from "./utils";
@@ -15,16 +15,23 @@ export default function DailyForecast({ weather, loading, tempUnit }: Props) {
   return (
     <div className="mt-8 lg:mt-12">
       <h2 className="font-semibold text-xl">Daily Forecast</h2>
-      <div className="grid grid-cols-3 md:grid-cols-7 gap-4 mt-5">
+      <motion.div
+        key={weather ? "data" : "skeleton"}
+        className="grid grid-cols-3 md:grid-cols-7 gap-4 mt-5"
+        variants={staggerChildren}
+        initial="hidden"
+        animate="visible"
+      >
         {loading && !weather
           ? Array.from({ length: 7 }).map((_, i) => (
               <motion.div
                 key={i}
-                className="rounded-xl px-[10px] py-4 min-h-[165px] bg-neutral-800 flex flex-col justify-between border border-neutral-600 items-center"
+                className="rounded-xl px-[10px] py-4 min-h-[165px] bg-neutral-800 flex flex-col justify-between border border-neutral-600 items-center skeleton"
                 variants={fadeInUp}
               >
                 <p className="font-medium text-lg">--</p>
-                <div className="w-[50px] h-[50px] bg-neutral-700 rounded" />
+                <div className="shimmer" />
+
                 <p className="w-full flex items-center justify-between font-medium text-base">
                   <span>--</span>
                   <span className="text-neutral-200">--</span>
@@ -57,7 +64,7 @@ export default function DailyForecast({ weather, loading, tempUnit }: Props) {
                   </p>
                 </motion.div>
               ))}
-      </div>
+      </motion.div>
     </div>
   );
 }

@@ -42,8 +42,27 @@ export function HomePage() {
   const [suggestionLoading, setSuggestionLoading] = useState(false);
 
   const [tempUnit, setTempUnit] = useState<"C" | "F">("C");
+
   const [windUnit, setWindUnit] = useState<"kmh" | "mph">("kmh");
+
   const [precipUnit, setPrecipUnit] = useState<"mm" | "in">("mm");
+
+  useEffect(() => {
+    try {
+      const t = localStorage.getItem("wa_tempUnit");
+      if (t === "F" || t === "C") setTempUnit(t as "C" | "F");
+    } catch {}
+
+    try {
+      const w = localStorage.getItem("wa_windUnit");
+      if (w === "mph" || w === "kmh") setWindUnit(w as "kmh" | "mph");
+    } catch {}
+
+    try {
+      const p = localStorage.getItem("wa_precipUnit");
+      if (p === "in" || p === "mm") setPrecipUnit(p as "mm" | "in");
+    } catch {}
+  }, []);
 
   type GeoResult = {
     latitude: number | string;
@@ -180,6 +199,24 @@ export function HomePage() {
     };
   }, [query]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem("wa_tempUnit", tempUnit);
+    } catch {}
+  }, [tempUnit]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("wa_windUnit", windUnit);
+    } catch {}
+  }, [windUnit]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("wa_precipUnit", precipUnit);
+    } catch {}
+  }, [precipUnit]);
+
   async function selectSuggestion(item: {
     id: string;
     name: string;
@@ -252,7 +289,7 @@ export function HomePage() {
               <div className="w-full lg:max-w-[500px] ml-auto relative">
                 <div className="w-full flex flex-col mb-8 lg:mb-12 gap-3.5">
                   <motion.div
-                    className="w-full items-center bg-neutral-800 rounded-xl p-4 gap-2 text-xl text-neutral-200 font-medium max-w-[500px] ml-auto hidden lg:flex focus:outline-none focus:ring-2 focus:ring-white"
+                    className="w-full items-center bg-neutral-800 rounded-xl p-4 gap-2 text-xl text-neutral-200 font-medium max-w-[500px] ml-auto hidden lg:flex"
                     tabIndex={0}
                     variants={slideInFromRight}
                   >
@@ -265,7 +302,6 @@ export function HomePage() {
                       selectSuggestion={selectSuggestion}
                     />
                   </motion.div>
-                  {/* suggestions dropdown container positioned by parent */}
                 </div>
               </div>
 

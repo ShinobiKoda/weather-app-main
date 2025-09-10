@@ -31,6 +31,32 @@
   scrollbar-width: thin; /* Firefox */
   scrollbar-color: var(--color-neutral-600) transparent;
 }
+.skeleton {
+  position: relative;
+  overflow: hidden;
+}
+.skeleton .shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.04) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 1.2s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
   height: 8px;

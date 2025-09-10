@@ -20,7 +20,6 @@ export default function WeatherHero({
   formatLongDate,
   tempUnit = "C",
 }: Props) {
-  // no-op: will be updated to accept tempUnit
   return (
     <>
       <motion.div

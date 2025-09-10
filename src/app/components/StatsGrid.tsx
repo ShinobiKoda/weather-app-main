@@ -1,6 +1,6 @@
 "use client";
 import { motion } from "motion/react";
-import { fadeInUp } from "./animations/motion";
+import { fadeInUp, staggerChildren } from "./animations/motion";
 import { WeatherPayload } from "../api/open-meto";
 
 import { convertTemp, convertWind, convertPrecip } from "./utils";
@@ -22,15 +22,21 @@ export default function StatsGrid({
 }: Props) {
   return (
     <motion.div
+      key={loading ? "skeleton" : "data"}
       className="mt-5 lg:mt-8 w-full grid grid-cols-2 gap-4 md:grid-cols-4"
-      variants={{}}
+      variants={staggerChildren}
+      initial="hidden"
+      animate="visible"
     >
       <motion.div
-        className="rounded-xl px-5 py-4 min-h-[118px] bg-neutral-800 flex flex-col justify-between border border-neutral-600"
+        className={`rounded-xl px-5 py-4 min-h-[118px] bg-neutral-800 flex flex-col justify-between border border-neutral-600 ${
+          loading ? "skeleton" : ""
+        }`}
         variants={fadeInUp}
         whileHover={{ y: -6 }}
         whileTap={{ scale: 0.995 }}
       >
+        {loading && <div className="shimmer" />}
         <p className="font-medium text-lg text-neutral-200">Feels like</p>
         <p className="text-white font-light text-[32px]">
           {loading
@@ -44,11 +50,14 @@ export default function StatsGrid({
       </motion.div>
 
       <motion.div
-        className="rounded-xl px-5 py-4 min-h-[118px] bg-neutral-800 flex flex-col justify-between border border-neutral-600"
+        className={`rounded-xl px-5 py-4 min-h-[118px] bg-neutral-800 flex flex-col justify-between border border-neutral-600 ${
+          loading ? "skeleton" : ""
+        }`}
         variants={fadeInUp}
         whileHover={{ y: -6 }}
         whileTap={{ scale: 0.995 }}
       >
+        {loading && <div className="shimmer" />}
         <p className="font-medium text-lg text-neutral-200">Humidity</p>
         <p className="text-white font-light text-[32px]">
           {loading
@@ -60,11 +69,14 @@ export default function StatsGrid({
       </motion.div>
 
       <motion.div
-        className="rounded-xl px-5 py-4 min-h-[118px] bg-neutral-800 flex flex-col justify-between border border-neutral-600"
+        className={`rounded-xl px-5 py-4 min-h-[118px] bg-neutral-800 flex flex-col justify-between border border-neutral-600 ${
+          loading ? "skeleton" : ""
+        }`}
         variants={fadeInUp}
         whileHover={{ y: -6 }}
         whileTap={{ scale: 0.995 }}
       >
+        {loading && <div className="shimmer" />}
         <p className="font-medium text-lg text-neutral-200">Wind</p>
         <p className="text-white font-light text-[32px]">
           {loading
@@ -78,11 +90,14 @@ export default function StatsGrid({
       </motion.div>
 
       <motion.div
-        className="rounded-xl px-5 py-4 min-h-[118px] bg-neutral-800 flex flex-col justify-between border border-neutral-600"
+        className={`rounded-xl px-5 py-4 min-h-[118px] bg-neutral-800 flex flex-col justify-between border border-neutral-600 ${
+          loading ? "skeleton" : ""
+        }`}
         variants={fadeInUp}
         whileHover={{ y: -6 }}
         whileTap={{ scale: 0.995 }}
       >
+        {loading && <div className="shimmer" />}
         <p className="font-medium text-lg text-neutral-200">Precipitation</p>
         <p className="text-white font-light text-[32px]">
           {loading

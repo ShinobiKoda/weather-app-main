@@ -3,7 +3,7 @@ import Image from "next/image";
 import { IoSettingsOutline } from "react-icons/io5";
 import { BiChevronDown } from "react-icons/bi";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { chevronRotate, dropdownMenu } from "../animations/motion";
 import { IoMdCheckmark } from "react-icons/io";
 
@@ -25,11 +25,28 @@ export function Navbar({
   setPrecipUnit,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    function handlePointerDown(e: PointerEvent) {
+      const target = e.target as Node | null;
+      if (!containerRef.current) return;
+      if (target && !containerRef.current.contains(target)) {
+        setOpen(false);
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, []);
 
   return (
     <nav className="w-full max-w-[1440px] mx-auto p-4 md:px-8 lg:px-12 flex items-center justify-between">
       <Image src="/images/logo.svg" alt="Logo" width={150} height={100} />
-      <div className="relative">
+      <div className="relative" ref={containerRef}>
         <motion.div
           className={`flex items-center gap-1.5 rounded-md bg-neutral-600 px-2 py-3 cursor-pointer select-none ${
             open ? "ring-2 ring-white" : ""
@@ -75,7 +92,7 @@ export function Navbar({
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
               <span>Celsius (°C)</span>
-              {tempUnit === "C" && <IoMdCheckmark />}
+              {mounted && tempUnit === "C" && <IoMdCheckmark />}
             </motion.button>
             <motion.button
               type="button"
@@ -88,7 +105,7 @@ export function Navbar({
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
               Fahrenheit (°F)
-              {tempUnit === "F" && <IoMdCheckmark />}
+              {mounted && tempUnit === "F" && <IoMdCheckmark />}
             </motion.button>
           </div>
           <hr className="my-4 text-neutral-600" />
@@ -105,7 +122,7 @@ export function Navbar({
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
               <span>km/h</span>
-              {windUnit === "kmh" && <IoMdCheckmark />}
+              {mounted && windUnit === "kmh" && <IoMdCheckmark />}
             </motion.button>
             <motion.button
               type="button"
@@ -118,7 +135,7 @@ export function Navbar({
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
               mph
-              {windUnit === "mph" && <IoMdCheckmark />}
+              {mounted && windUnit === "mph" && <IoMdCheckmark />}
             </motion.button>
           </div>
           <hr className="my-4 text-neutral-600" />
@@ -137,7 +154,7 @@ export function Navbar({
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
               <span>Millimeters (mm)</span>
-              {precipUnit === "mm" && <IoMdCheckmark />}
+              {mounted && precipUnit === "mm" && <IoMdCheckmark />}
             </motion.button>
             <motion.button
               type="button"
@@ -150,7 +167,7 @@ export function Navbar({
               transition={{ type: "spring", stiffness: 300, damping: 20 }}
             >
               Inches (in)
-              {precipUnit === "in" && <IoMdCheckmark />}
+              {mounted && precipUnit === "in" && <IoMdCheckmark />}
             </motion.button>
           </div>
         </motion.div>
