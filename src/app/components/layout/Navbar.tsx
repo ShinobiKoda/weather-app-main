@@ -39,7 +39,7 @@ export function Navbar() {
         </motion.div>
 
         <motion.div
-          className="absolute right-0 mt-2 bg-neutral-800 border border-neutral-600 rounded-xl px-4 py-2.5 min-w-[214px] z-20"
+          className="absolute right-0 mt-2 bg-neutral-800 border border-neutral-600 rounded-xl px-4 py-2.5 min-w-[214px] z-40"
           variants={dropdownMenu}
           initial="hidden"
           animate={open ? "visible" : "hidden"}
