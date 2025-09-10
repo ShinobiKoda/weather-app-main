@@ -28,6 +28,9 @@ export default function SearchBar({
   suggestionLoading,
   selectSuggestion,
 }: Props) {
+  const showList =
+    suggestionLoading ||
+    (query && query.trim().length > 0 && suggestions.length > 0);
   return (
     <div className="w-full relative lg:static">
       <div className="w-full flex items-center bg-neutral-800 rounded-xl gap-2 text-xl text-neutral-200 font-medium p-4 lg:p-0">
@@ -47,7 +50,7 @@ export default function SearchBar({
       <div>
         <div
           className={`${
-            suggestions.length === 0 && !suggestionLoading ? "hidden" : ""
+            !showList ? "hidden" : ""
           } bg-neutral-800 border border-neutral-700 rounded-xl w-full absolute p-4 left-0 top-18 z-30`}
           role="listbox"
           aria-label="location-suggestions"

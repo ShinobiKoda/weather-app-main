@@ -1,7 +1,16 @@
 "use client";
 import { motion } from "motion/react";
 import Image from "next/image";
-import { bgFloat, sunBounceRotate } from "./animations/motion";
+import {
+  bgFloat,
+  sunBounceRotate,
+  cloudDrift,
+  rainJitter,
+  drizzleFloat,
+  snowFloat,
+  stormPulse,
+  fogDrift,
+} from "./animations/motion";
 import { WeatherPayload } from "../api/open-meto";
 import { convertTemp } from "./utils";
 
@@ -20,6 +29,26 @@ export default function WeatherHero({
   formatLongDate,
   tempUnit = "C",
 }: Props) {
+  const code = weather?.current?.weathercode ?? 0;
+
+  function pickIconVariant(code: number) {
+    if (code === 0) return sunBounceRotate; // clear
+    if (code === 1 || code === 2 || code === 3) return sunBounceRotate; 
+    if (code === 45 || code === 48) return fogDrift; 
+    if (
+      (code >= 51 && code <= 57) ||
+      (code >= 61 && code <= 67) ||
+      (code >= 80 && code <= 82)
+    )
+      return drizzleFloat; // drizzle / light rain
+    if ((code >= 63 && code <= 65) || (code >= 85 && code <= 86))
+      return rainJitter; // rain
+    if (code >= 71 && code <= 77) return snowFloat; // snow
+    if (code >= 95 && code <= 99) return stormPulse; // thunderstorm
+    return cloudDrift; // overcast fallback
+  }
+
+  const iconVariant = pickIconVariant(code);
   return (
     <>
       <motion.div
@@ -42,7 +71,7 @@ export default function WeatherHero({
           </p>
         </div>
         <div className="flex items-center">
-          <motion.div variants={sunBounceRotate} className="flex items-center">
+          <motion.div variants={iconVariant} className="flex items-center">
             <Image
               src={
                 weather
@@ -71,7 +100,6 @@ export default function WeatherHero({
         style={{
           backgroundImage: "url('/images/bg-today-large.svg')",
         }}
-        variants={bgFloat}
       >
         <div>
           <h2 className="font-bold text-xl">
@@ -86,7 +114,7 @@ export default function WeatherHero({
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <motion.div variants={sunBounceRotate} className="flex items-center">
+          <motion.div variants={iconVariant} className="flex items-center">
             <Image
               src={
                 weather
@@ -98,7 +126,7 @@ export default function WeatherHero({
               height={100}
             />
           </motion.div>
-          <p className="text-8xl font-extrabold italic">
+          <motion.p variants={iconVariant} className="text-8xl font-extrabold italic">
             {loading
               ? "--"
               : weather
@@ -106,7 +134,7 @@ export default function WeatherHero({
                   convertTemp(weather.current.temperature, tempUnit)
                 )}°`
               : "--"}
-          </p>
+          </motion.p>
         </div>
       </motion.div>
     </>

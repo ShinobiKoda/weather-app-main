@@ -109,6 +109,8 @@ export function HomePage() {
 
   async function handleSearch() {
     if (!query) return;
+    // hide suggestions when searching
+    setSuggestions([]);
     setLoading(true);
     try {
       const geoRes = await fetch(

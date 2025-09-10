@@ -238,3 +238,63 @@ export const dropdownMenu: Variants = {
     transition: { duration: 0.18, ease: "easeOut" },
   },
 };
+
+export const cloudDrift: Variants = {
+  hidden: { x: 0, y: 0, opacity: 0.95 },
+  visible: {
+    x: [0, 6, -6, 0],
+    y: [0, -4, 4, 0],
+    opacity: 1,
+    transition: {
+      duration: 8,
+      ease: "easeInOut",
+      repeat: Infinity,
+      repeatType: "loop",
+    },
+  },
+};
+
+export const rainJitter: Variants = {
+  hidden: { y: 0, opacity: 0.95 },
+  visible: {
+    y: [0, 2, 0, 1, 0],
+    opacity: [0.95, 0.9, 0.95],
+    transition: { duration: 0.9, ease: "linear", repeat: Infinity },
+  },
+};
+
+export const drizzleFloat: Variants = {
+  hidden: { y: 0, opacity: 0.96 },
+  visible: {
+    y: [0, 1.5, 0],
+    opacity: [0.96, 0.9, 0.96],
+    transition: { duration: 1.8, ease: "easeInOut", repeat: Infinity },
+  },
+};
+
+export const snowFloat: Variants = {
+  hidden: { y: 0, opacity: 0.98 },
+  visible: {
+    y: [0, -6, 0],
+    rotate: [0, 4, -4, 0],
+    opacity: [0.98, 0.9, 0.98],
+    transition: { duration: 6, ease: "easeInOut", repeat: Infinity },
+  },
+};
+
+export const stormPulse: Variants = {
+  hidden: { scale: 1, opacity: 0.95 },
+  visible: {
+    scale: [1, 1.02, 0.98, 1],
+    opacity: [0.95, 1, 0.95],
+    transition: { duration: 1.2, ease: "easeInOut", repeat: Infinity },
+  },
+};
+
+export const fogDrift: Variants = {
+  hidden: { opacity: 0.85 },
+  visible: {
+    opacity: [0.85, 0.95, 0.85],
+    transition: { duration: 6, ease: "easeInOut", repeat: Infinity },
+  },
+};
