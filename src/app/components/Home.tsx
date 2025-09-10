@@ -45,8 +45,6 @@ export function HomePage() {
 
   const [windUnit, setWindUnit] = useState<"kmh" | "mph">("kmh");
 
-  const [precipUnit, setPrecipUnit] = useState<"mm" | "in">("mm");
-
   useEffect(() => {
     try {
       const t = localStorage.getItem("wa_tempUnit");
@@ -58,10 +56,7 @@ export function HomePage() {
       if (w === "mph" || w === "kmh") setWindUnit(w as "kmh" | "mph");
     } catch {}
 
-    try {
-      const p = localStorage.getItem("wa_precipUnit");
-      if (p === "in" || p === "mm") setPrecipUnit(p as "mm" | "in");
-    } catch {}
+    // no precipitation unit preference — we only show chance of rain
   }, []);
 
   type GeoResult = {
@@ -211,12 +206,6 @@ export function HomePage() {
     } catch {}
   }, [windUnit]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem("wa_precipUnit", precipUnit);
-    } catch {}
-  }, [precipUnit]);
-
   async function selectSuggestion(item: {
     id: string;
     name: string;
@@ -250,8 +239,6 @@ export function HomePage() {
         setTempUnit={setTempUnit}
         windUnit={windUnit}
         setWindUnit={setWindUnit}
-        precipUnit={precipUnit}
-        setPrecipUnit={setPrecipUnit}
       />
       <div className="w-full px-4 max-w-[1440px] mx-auto md:px-8 lg:px-12">
         <motion.h1
@@ -318,7 +305,6 @@ export function HomePage() {
                 loading={loading}
                 tempUnit={tempUnit}
                 windUnit={windUnit}
-                precipUnit={precipUnit}
               />
 
               <DailyForecast
@@ -345,7 +331,6 @@ export function HomePage() {
                 setDayOpen={setDayOpen}
                 tempUnit={tempUnit}
                 windUnit={windUnit}
-                precipUnit={precipUnit}
               />
             </div>
           </div>

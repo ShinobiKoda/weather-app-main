@@ -21,7 +21,6 @@ type Props = {
   setDayOpen: (v: boolean | ((v: boolean) => boolean)) => void;
   tempUnit?: "C" | "F";
   windUnit?: "kmh" | "mph";
-  precipUnit?: "mm" | "in";
 };
 
 const formatKey = (d: Date) => {

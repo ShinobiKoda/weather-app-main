@@ -3,14 +3,13 @@ import { motion } from "motion/react";
 import { fadeInUp, staggerChildren } from "./animations/motion";
 import { WeatherPayload } from "../api/open-meto";
 
-import { convertTemp, convertWind, convertPrecip } from "./utils";
+import { convertTemp, convertWind } from "./utils";
 
 type Props = {
   weather: WeatherPayload | null;
   loading: boolean;
   tempUnit: "C" | "F";
   windUnit: "kmh" | "mph";
-  precipUnit: "mm" | "in";
 };
 
 export default function StatsGrid({
@@ -18,7 +17,6 @@ export default function StatsGrid({
   loading,
   tempUnit,
   windUnit,
-  precipUnit,
 }: Props) {
   return (
     <motion.div
@@ -98,14 +96,16 @@ export default function StatsGrid({
         whileTap={{ scale: 0.995 }}
       >
         {loading && <div className="shimmer" />}
-        <p className="font-medium text-lg text-neutral-200">Precipitation</p>
+        <p className="font-medium text-lg text-neutral-200">
+          Precipitation <span className="text-sm">(chance of rain)</span>{" "}
+        </p>
         <p className="text-white font-light text-[32px]">
           {loading
             ? "--"
-            : Number.isFinite(weather?.properties.precipitation as number)
-            ? `${Number(
-                convertPrecip(weather!.properties.precipitation!, precipUnit)
-              ).toFixed(1)} ${precipUnit}`
+            : Number.isFinite(
+                weather?.properties.precipitation_probability as number
+              )
+            ? `${Math.round(weather!.properties.precipitation_probability!)}%`
             : "--"}
         </p>
       </motion.div>

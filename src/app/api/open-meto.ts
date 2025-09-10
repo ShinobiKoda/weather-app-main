@@ -3,6 +3,8 @@ export type HourlyForecastItem = {
   temp: number;
   weathercode: number;
   icon: string;
+  precipitation?: number; // mm
+  precipitation_probability?: number; // %
 };
 
 export type DailyForecastItem = {
@@ -16,8 +18,9 @@ export type DailyForecastItem = {
 export type WeatherProperties = {
   feels_like?: number | null;
   humidity?: number | null;
-  wind?: number | null; // km/h
-  precipitation?: number | null; // mm (last hour or accumulated as provided)
+  wind?: number | null;
+  precipitation?: number | null;
+  precipitation_probability?: number | null; // ✅ new
 };
 
 export type WeatherPayload = {
@@ -67,6 +70,7 @@ export async function fetchWeather(
       "apparent_temperature",
       "relativehumidity_2m",
       "precipitation",
+      "precipitation_probability", // ✅ add this
       "weathercode",
     ].join(",")
   );
@@ -98,6 +102,10 @@ export async function fetchWeather(
   };
 
   const hourlyTimes: string[] = data.hourly.time || [];
+  const hourlyPrecipProbs: number[] = (
+    data.hourly.precipitation_probability || []
+  ).map(Number);
+
   const hourlyTemps: number[] = (data.hourly.temperature_2m || []).map(Number);
   const hourlyWeathercodes: number[] = (data.hourly.weathercode || []).map(
     Number
@@ -109,15 +117,19 @@ export async function fetchWeather(
       temp: hourlyTemps[i] ?? NaN,
       weathercode: hourlyWeathercodes[i] ?? 0,
       icon: weatherCodeToIcon(Number(hourlyWeathercodes[i] ?? 0)),
+      precipitation: (data.hourly.precipitation || [])[i] ?? null,
+      precipitation_probability: hourlyPrecipProbs[i] ?? null,
     })
   );
-  // Daily
   const dailyDates: string[] = data.daily.time || [];
   const dailyMax: number[] = (data.daily.temperature_2m_max || []).map(Number);
   const dailyMin: number[] = (data.daily.temperature_2m_min || []).map(Number);
   const dailyWeathercodes: number[] = (data.daily.weathercode || []).map(
     Number
   );
+  const precipProbs: number[] = (
+    data.hourly.precipitation_probability || []
+  ).map(Number);
 
   const daily: DailyForecastItem[] = dailyDates.map((d: string, i: number) => ({
     date: d,
@@ -171,6 +183,10 @@ export async function fetchWeather(
       currentIndex >= 0 && Number.isFinite(precipitations[currentIndex])
         ? precipitations[currentIndex]
         : null,
+    precipitation_probability:
+      currentIndex >= 0 && Number.isFinite(precipProbs[currentIndex])
+        ? precipProbs[currentIndex]
+        : null, // ✅ now you’ll get % chance of rain
   };
 
   return {

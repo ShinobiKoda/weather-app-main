@@ -12,8 +12,6 @@ type Props = {
   setTempUnit: (u: "C" | "F") => void;
   windUnit: "kmh" | "mph";
   setWindUnit: (u: "kmh" | "mph") => void;
-  precipUnit: "mm" | "in";
-  setPrecipUnit: (u: "mm" | "in") => void;
 };
 
 export function Navbar({
@@ -21,8 +19,6 @@ export function Navbar({
   setTempUnit,
   windUnit,
   setWindUnit,
-  precipUnit,
-  setPrecipUnit,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -136,38 +132,6 @@ export function Navbar({
             >
               mph
               {mounted && windUnit === "mph" && <IoMdCheckmark />}
-            </motion.button>
-          </div>
-          <hr className="my-4 text-neutral-600" />
-          <div className="space-y-2">
-            <h4 className="font-medium text-sm text-neutral-300">
-              Precipitaion
-            </h4>
-            <motion.button
-              type="button"
-              onClick={() => setPrecipUnit("mm")}
-              className={`font-medium text-base w-full flex items-center justify-between rounded-lg px-2 py-2.5 ${
-                precipUnit === "mm" ? "bg-neutral-700" : ""
-              } cursor-pointer`}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            >
-              <span>Millimeters (mm)</span>
-              {mounted && precipUnit === "mm" && <IoMdCheckmark />}
-            </motion.button>
-            <motion.button
-              type="button"
-              onClick={() => setPrecipUnit("in")}
-              className={`font-medium text-base w-full flex items-center justify-between px-2 py-2.5 ${
-                precipUnit === "in" ? "bg-neutral-700 rounded-lg" : ""
-              } cursor-pointer`}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            >
-              Inches (in)
-              {mounted && precipUnit === "in" && <IoMdCheckmark />}
             </motion.button>
           </div>
         </motion.div>
