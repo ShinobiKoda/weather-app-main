@@ -3,12 +3,14 @@ import { motion } from "motion/react";
 import Image from "next/image";
 import { bgFloat, sunBounceRotate } from "./animations/motion";
 import { WeatherPayload } from "../api/open-meto";
+import { convertTemp } from "./utils";
 
 type Props = {
   weather: WeatherPayload | null;
   loading: boolean;
   location: string;
   formatLongDate: (d?: string | Date) => string;
+  tempUnit?: "C" | "F";
 };
 
 export default function WeatherHero({
@@ -16,7 +18,9 @@ export default function WeatherHero({
   loading,
   location,
   formatLongDate,
+  tempUnit = "C",
 }: Props) {
+  // no-op: will be updated to accept tempUnit
   return (
     <>
       <motion.div
@@ -55,7 +59,9 @@ export default function WeatherHero({
             {loading
               ? "--"
               : weather
-              ? `${Math.round(weather.current.temperature)}°`
+              ? `${Math.round(
+                  convertTemp(weather.current.temperature, tempUnit)
+                )}°`
               : "--"}
           </p>
         </div>
@@ -97,7 +103,9 @@ export default function WeatherHero({
             {loading
               ? "--"
               : weather
-              ? `${Math.round(weather.current.temperature)}°`
+              ? `${Math.round(
+                  convertTemp(weather.current.temperature, tempUnit)
+                )}°`
               : "--"}
           </p>
         </div>

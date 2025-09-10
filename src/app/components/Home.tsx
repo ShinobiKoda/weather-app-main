@@ -41,6 +41,10 @@ export function HomePage() {
   >([]);
   const [suggestionLoading, setSuggestionLoading] = useState(false);
 
+  const [tempUnit, setTempUnit] = useState<"C" | "F">("C");
+  const [windUnit, setWindUnit] = useState<"kmh" | "mph">("kmh");
+  const [precipUnit, setPrecipUnit] = useState<"mm" | "in">("mm");
+
   type GeoResult = {
     latitude: number | string;
     longitude: number | string;
@@ -204,7 +208,14 @@ export function HomePage() {
       initial="hidden"
       animate="visible"
     >
-      <Navbar />
+      <Navbar
+        tempUnit={tempUnit}
+        setTempUnit={setTempUnit}
+        windUnit={windUnit}
+        setWindUnit={setWindUnit}
+        precipUnit={precipUnit}
+        setPrecipUnit={setPrecipUnit}
+      />
       <div className="w-full px-4 max-w-[1440px] mx-auto md:px-8 lg:px-12">
         <motion.h1
           className={` ${bricolage_grotesque.className} text-center text-[52px] lg:text-7xl font-bold mt-12`}
@@ -241,7 +252,8 @@ export function HomePage() {
               <div className="w-full lg:max-w-[500px] ml-auto relative">
                 <div className="w-full flex flex-col mb-8 lg:mb-12 gap-3.5">
                   <motion.div
-                    className="w-full items-center bg-neutral-800 rounded-xl p-4 gap-2 text-xl text-neutral-200 font-medium max-w-[500px] ml-auto hidden lg:flex focus:outline-none focus:ring-2 focus:ring-white" tabIndex={0}
+                    className="w-full items-center bg-neutral-800 rounded-xl p-4 gap-2 text-xl text-neutral-200 font-medium max-w-[500px] ml-auto hidden lg:flex focus:outline-none focus:ring-2 focus:ring-white"
+                    tabIndex={0}
                     variants={slideInFromRight}
                   >
                     <SearchBar
@@ -262,11 +274,22 @@ export function HomePage() {
                 loading={loading}
                 location={location}
                 formatLongDate={defaultFormatLongDate}
+                tempUnit={tempUnit}
               />
 
-              <StatsGrid weather={weather} loading={loading} />
+              <StatsGrid
+                weather={weather}
+                loading={loading}
+                tempUnit={tempUnit}
+                windUnit={windUnit}
+                precipUnit={precipUnit}
+              />
 
-              <DailyForecast weather={weather} loading={loading} />
+              <DailyForecast
+                weather={weather}
+                loading={loading}
+                tempUnit={tempUnit}
+              />
             </div>
 
             <div className="mt-8 flex flex-col max-h-full">
@@ -284,6 +307,9 @@ export function HomePage() {
                 loading={loading}
                 dayOpen={dayOpen}
                 setDayOpen={setDayOpen}
+                tempUnit={tempUnit}
+                windUnit={windUnit}
+                precipUnit={precipUnit}
               />
             </div>
           </div>

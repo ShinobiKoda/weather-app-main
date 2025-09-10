@@ -3,12 +3,23 @@ import { motion } from "motion/react";
 import { fadeInUp } from "./animations/motion";
 import { WeatherPayload } from "../api/open-meto";
 
+import { convertTemp, convertWind, convertPrecip } from "./utils";
+
 type Props = {
   weather: WeatherPayload | null;
   loading: boolean;
+  tempUnit: "C" | "F";
+  windUnit: "kmh" | "mph";
+  precipUnit: "mm" | "in";
 };
 
-export default function StatsGrid({ weather, loading }: Props) {
+export default function StatsGrid({
+  weather,
+  loading,
+  tempUnit,
+  windUnit,
+  precipUnit,
+}: Props) {
   return (
     <motion.div
       className="mt-5 lg:mt-8 w-full grid grid-cols-2 gap-4 md:grid-cols-4"
@@ -25,7 +36,9 @@ export default function StatsGrid({ weather, loading }: Props) {
           {loading
             ? "--"
             : Number.isFinite(weather?.properties.feels_like as number)
-            ? `${Math.round(weather!.properties.feels_like!)}°`
+            ? `${Math.round(
+                convertTemp(weather!.properties.feels_like!, tempUnit)
+              )}°`
             : "--"}
         </p>
       </motion.div>
@@ -57,7 +70,9 @@ export default function StatsGrid({ weather, loading }: Props) {
           {loading
             ? "--"
             : Number.isFinite(weather?.properties.wind as number)
-            ? `${Math.round(weather!.properties.wind!)} km/h`
+            ? `${Math.round(
+                convertWind(weather!.properties.wind!, windUnit)
+              )} ${windUnit === "kmh" ? "km/h" : "mph"}`
             : "--"}
         </p>
       </motion.div>
@@ -73,7 +88,9 @@ export default function StatsGrid({ weather, loading }: Props) {
           {loading
             ? "--"
             : Number.isFinite(weather?.properties.precipitation as number)
-            ? `${weather!.properties.precipitation} mm`
+            ? `${Number(
+                convertPrecip(weather!.properties.precipitation!, precipUnit)
+              ).toFixed(1)} ${precipUnit}`
             : "--"}
         </p>
       </motion.div>

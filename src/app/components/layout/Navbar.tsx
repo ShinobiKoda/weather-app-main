@@ -7,11 +7,24 @@ import { useState } from "react";
 import { chevronRotate, dropdownMenu } from "../animations/motion";
 import { IoMdCheckmark } from "react-icons/io";
 
-export function Navbar() {
+type Props = {
+  tempUnit: "C" | "F";
+  setTempUnit: (u: "C" | "F") => void;
+  windUnit: "kmh" | "mph";
+  setWindUnit: (u: "kmh" | "mph") => void;
+  precipUnit: "mm" | "in";
+  setPrecipUnit: (u: "mm" | "in") => void;
+};
+
+export function Navbar({
+  tempUnit,
+  setTempUnit,
+  windUnit,
+  setWindUnit,
+  precipUnit,
+  setPrecipUnit,
+}: Props) {
   const [open, setOpen] = useState(false);
-  const [tempUnit, setTempUnit] = useState<"C" | "F">("C");
-  const [windUnit, setWindUnit] = useState<"kmh" | "mph">("kmh");
-  const [precipUnit, setPrecipUnit] = useState<"mm" | "in">("mm");
 
   return (
     <nav className="w-full max-w-[1440px] mx-auto p-4 md:px-8 lg:px-12 flex items-center justify-between">
@@ -39,7 +52,9 @@ export function Navbar() {
         </motion.div>
 
         <motion.div
-          className="absolute right-0 mt-2 bg-neutral-800 border border-neutral-600 rounded-xl px-4 py-2.5 min-w-[214px] z-40"
+          className={`absolute right-0 mt-2 bg-neutral-800 border border-neutral-600 rounded-xl px-4 py-2.5 min-w-[214px] z-50 ${
+            open ? "pointer-events-auto" : "pointer-events-none"
+          }`}
           variants={dropdownMenu}
           initial="hidden"
           animate={open ? "visible" : "hidden"}

@@ -103,15 +103,14 @@ export async function fetchWeather(
     Number
   );
 
-  const hourly: HourlyForecastItem[] = hourlyTimes
-    .map((t: string, i: number) => ({
+  const hourly: HourlyForecastItem[] = hourlyTimes.map(
+    (t: string, i: number) => ({
       time: t,
       temp: hourlyTemps[i] ?? NaN,
       weathercode: hourlyWeathercodes[i] ?? 0,
       icon: weatherCodeToIcon(Number(hourlyWeathercodes[i] ?? 0)),
-    }))
-    .slice(0, 24);
-
+    })
+  );
   // Daily
   const dailyDates: string[] = data.daily.time || [];
   const dailyMax: number[] = (data.daily.temperature_2m_max || []).map(Number);

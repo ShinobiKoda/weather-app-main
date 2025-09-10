@@ -3,13 +3,15 @@ import { motion } from "motion/react";
 import { fadeInUp } from "./animations/motion";
 import Image from "next/image";
 import { DailyForecastItem } from "../api/open-meto";
+import { convertTemp } from "./utils";
 
 type Props = {
   weather: { daily?: DailyForecastItem[] } | null;
   loading: boolean;
+  tempUnit: "C" | "F";
 };
 
-export default function DailyForecast({ weather, loading }: Props) {
+export default function DailyForecast({ weather, loading, tempUnit }: Props) {
   return (
     <div className="mt-8 lg:mt-12">
       <h2 className="font-semibold text-xl">Daily Forecast</h2>
@@ -46,9 +48,11 @@ export default function DailyForecast({ weather, loading }: Props) {
                   </p>
                   <Image src={d.icon} alt="Weather" width={50} height={50} />
                   <p className="w-full flex items-center justify-between font-medium text-base">
-                    <span className="">{Math.round(d.maxTemp)}°</span>
+                    <span className="">
+                      {Math.round(convertTemp(d.maxTemp, tempUnit))}°
+                    </span>
                     <span className="text-neutral-200">
-                      {Math.round(d.minTemp)}°
+                      {Math.round(convertTemp(d.minTemp, tempUnit))}°
                     </span>
                   </p>
                 </motion.div>
