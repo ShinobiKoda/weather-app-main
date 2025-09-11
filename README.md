@@ -11,7 +11,6 @@ A modern weather app built with Next.js and Tailwind CSS.
 - [My process](#my-process)
   - [Built with](#built-with)
   - [What I learned](#what-i-learned)
-  - [Continued development](#continued-development)
   - [Useful resources](#useful-resources)
 - [Author](#author)
 - [Acknowledgments](#acknowledgments)
@@ -26,9 +25,11 @@ Users should be able to:
 - View current weather conditions and details
 - See additional metrics like humidity, wind speed, precipitation
 - Browse a 7-day forecast and hourly forecast
-- Switch between days and units (Imperial/Metric)
+- Switch between days and units (Metric)
+- Switch between specific temperature units and measurement units for wind speed
+- View the optimal layout for the interface depending on their device's screen size
+- See hover and focus states for all interactive elements on the page
 - Responsive layout for all devices
-- See hover and focus states for interactive elements
 
 ### Screenshot
 
@@ -36,8 +37,8 @@ Users should be able to:
 
 ### Links
 
-- Solution URL: <!--  solution URL here -->
-- Live Site URL: <!--  live site URL here -->
+- Solution URL: [Click Here](https://github.com/ShinobiKoda/weather-app-main)
+- Live Site URL: [Click Here](https://weather-app-main-henna.vercel.app/)
 
 ## My process
 
@@ -46,16 +47,30 @@ Users should be able to:
 - Next.js
 - React
 - Tailwind CSS
-- CSS custom properties
+- Motion
 - Mobile-first workflow
 
 ### What I learned
 
-<!-- learnings here -->
+- Integrating the Open-Meteo API and shaping its response into typed hourly/daily/current payloads in TypeScript.
+- Building a responsive UI with Next.js + Tailwind and small motion animations for polish.
+- Implementing a search with live suggestions (and clearing suggestions on action) for a smoother UX.
 
-### Continued development
+Small example — fetch current weather and some properties:
 
-<!-- future plans here -->
+```typescript
+import fetchWeather from "src/app/api/open-meto";
+
+async function showWeather() {
+  const data = await fetchWeather(51.51, -0.13); // lat, lon
+  console.log(
+    data.current.temperature,
+    data.properties.precipitation_probability
+  );
+}
+
+showWeather();
+```
 
 ### Useful resources
 
@@ -63,10 +78,5 @@ Users should be able to:
 
 ## Author
 
-- Website - <!-- name/website here -->
-- Frontend Mentor - <!-- username/profile link here -->
-- Twitter - <!-- username/profile link here -->
-
-## Acknowledgments
-
-<!-- Add acknowledgments here -->
+- Frontend Mentor - [Praise Adebiyi](https://www.frontendmentor.io/home)
+- Twitter - [sirp_xo](https://x.com/sirp_xo)

@@ -3,6 +3,7 @@ import { Navbar } from "./layout/Navbar";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import fetchWeather, { WeatherPayload } from "../api/open-meto";
+import { fetchUserLocation } from "@/lib/fetchUserLocation";
 import { Bricolage_Grotesque } from "next/font/google";
 
 import {
@@ -68,48 +69,47 @@ export function HomePage() {
   };
 
   useEffect(() => {
-    if (!navigator.geolocation) {
-      setLocation("Geolocation not supported");
-      return;
-    }
+    // Use server-side IP geolocation helper to obtain a best-effort user location
+    // then fetch weather for those coordinates.
+    let mounted = true;
 
-    setLoading(true);
+    (async () => {
+      setLoading(true);
+      try {
+        const loc = await fetchUserLocation();
+        if (!mounted) return;
 
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const lat = pos.coords.latitude;
-          const lon = pos.coords.longitude;
-
-          const data = await fetchWeather(lat, lon);
-          setWeather(data);
-
-          const res = await fetch(`http://ip-api.com/json/`);
-          const geo = await res.json();
-
-          if (geo.status === "success") {
-            setLocation(`${geo.city}, ${geo.country}`);
-          } else {
-            setLocation(`Lat: ${lat}, Lon: ${lon}`);
-          }
-        } catch (e) {
-          console.error("Error:", e);
+        if (!loc) {
           setLocation("Unknown location");
-        } finally {
-          setLoading(false);
+          setWeather(null);
+          return;
         }
-      },
-      (err) => {
-        console.error("Geolocation error:", err);
-        setLoading(false);
-        setLocation("Unknown location");
+
+        // Fetch weather for the returned coordinates
+        const data = await fetchWeather(loc.latitude, loc.longitude);
+        if (!mounted) return;
+        setWeather(data);
+
+        // Prefer a human readable place when available
+        if (loc.city && loc.country) setLocation(`${loc.city}, ${loc.country}`);
+        else if (loc.city && loc.region)
+          setLocation(`${loc.city}, ${loc.region}`);
+        else setLocation(`Lat: ${loc.latitude}, Lon: ${loc.longitude}`);
+      } catch (e) {
+        console.error("Error fetching user location / weather:", e);
+        if (mounted) setLocation("Unknown location");
+      } finally {
+        if (mounted) setLoading(false);
       }
-    );
+    })();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   async function handleSearch() {
     if (!query) return;
-    // hide suggestions when searching
     setSuggestions([]);
     setLoading(true);
     try {
