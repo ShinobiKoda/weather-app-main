@@ -57,7 +57,6 @@ export function HomePage() {
       if (w === "mph" || w === "kmh") setWindUnit(w as "kmh" | "mph");
     } catch {}
 
-    // no precipitation unit preference — we only show chance of rain
   }, []);
 
   type GeoResult = {
@@ -69,8 +68,7 @@ export function HomePage() {
   };
 
   useEffect(() => {
-    // Use server-side IP geolocation helper to obtain a best-effort user location
-    // then fetch weather for those coordinates.
+
     let mounted = true;
 
     (async () => {
@@ -85,12 +83,10 @@ export function HomePage() {
           return;
         }
 
-        // Fetch weather for the returned coordinates
         const data = await fetchWeather(loc.latitude, loc.longitude);
         if (!mounted) return;
         setWeather(data);
 
-        // Prefer a human readable place when available
         if (loc.city && loc.country) setLocation(`${loc.city}, ${loc.country}`);
         else if (loc.city && loc.region)
           setLocation(`${loc.city}, ${loc.region}`);
@@ -151,7 +147,6 @@ export function HomePage() {
     }
   }
 
-  // Debounced suggestions for the search input
   useEffect(() => {
     if (!query || query.trim().length < 2) {
       setSuggestions([]);
