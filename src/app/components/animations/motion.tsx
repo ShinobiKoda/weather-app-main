@@ -57,6 +57,8 @@ export const zoomOut: Variants = {
   },
 };
 
+
+
 export const rotateIn: Variants = {
   hidden: { rotate: -90, opacity: 0 },
   visible: {
@@ -295,6 +297,59 @@ export const fogDrift: Variants = {
   hidden: { opacity: 0.85 },
   visible: {
     opacity: [0.85, 0.95, 0.85],
+    transition: { duration: 6, ease: "easeInOut", repeat: Infinity },
+  },
+};
+
+// Full-hero overlay variants for weather effects (used as background overlays)
+export const rainOverlay: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 0.55,
+    y: [0, 120],
+    transition: { duration: 0.9, ease: "linear", repeat: Infinity },
+  },
+};
+
+export const drizzleOverlay: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 0.28,
+    y: [0, 80],
+    transition: { duration: 1.6, ease: "linear", repeat: Infinity },
+  },
+};
+
+export const snowOverlay: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 0.5,
+    y: [0, 160],
+    x: [0, 6, -6, 0],
+    transition: { duration: 6, ease: "linear", repeat: Infinity },
+  },
+};
+
+export const stormOverlay: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: [0.0, 0.85, 0.0, 0.6, 0.0],
+    transition: { duration: 2.2, ease: "easeInOut", repeat: Infinity },
+  },
+};
+
+export const fogOverlay: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: [0.0, 0.5, 0.0],
+    transition: { duration: 8, ease: "easeInOut", repeat: Infinity },
+  },
+};
+
+export const sunOverlay: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: [0, 0.06, 0],
     transition: { duration: 6, ease: "easeInOut", repeat: Infinity },
   },
 };

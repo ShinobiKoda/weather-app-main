@@ -1,7 +1,9 @@
 "use client";
 import React from "react";
-import { IoIosSearch } from "react-icons/io";
+import { IoIosSearch, IoMdClose } from "react-icons/io";
 import { ClipLoader } from "react-spinners";
+import { motion } from "motion/react";
+import { scaleOnHover } from "./animations/motion";
 
 type SuggestionItem = {
   id: string;
@@ -28,9 +30,9 @@ export default function SearchBar({
   suggestionLoading,
   selectSuggestion,
 }: Props) {
-  const showList =
-    suggestionLoading ||
-    (query && query.trim().length > 0 && suggestions.length > 0);
+ 
+  const hasQuery = query && query.trim().length > 0;
+  const showList = suggestionLoading || hasQuery;
   return (
     <div className="w-full relative lg:static">
       <div className="w-full flex items-center bg-neutral-800 rounded-xl gap-2 text-xl text-neutral-200 font-medium p-4 lg:p-0">
@@ -46,6 +48,21 @@ export default function SearchBar({
           placeholder="Search for a place..."
           aria-label="location-search"
         />
+        {(hasQuery || suggestionLoading) && (
+          <motion.button
+            type="button"
+            aria-label="clear-search"
+            title="Clear search"
+            className="text-neutral-300 cursor-pointer"
+            onClick={() => setQuery("")}
+            variants={scaleOnHover}
+            initial="hidden"
+            whileHover="hover"
+            whileTap="tap"
+          >
+            <IoMdClose size={25}/>
+          </motion.button>
+        )}
       </div>
       <div>
         <div
@@ -72,7 +89,7 @@ export default function SearchBar({
                   <li key={s.id}>
                     <button
                       onClick={() => selectSuggestion(s)}
-                      className="w-full text-left text-base font-medium hover:bg-neutral-700 hover:border border-neutral-600 rounded-lg px-2 py-2.5"
+                      className="w-full text-left text-base font-medium hover:bg-neutral-700 hover:border border-neutral-600 rounded-lg px-2 py-2.5 cursor-pointer"
                     >
                       {s.name}
                     </button>
