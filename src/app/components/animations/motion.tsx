@@ -57,8 +57,6 @@ export const zoomOut: Variants = {
   },
 };
 
-
-
 export const rotateIn: Variants = {
   hidden: { rotate: -90, opacity: 0 },
   visible: {
@@ -224,6 +222,20 @@ export const sunBounceRotate: Variants = {
 export const chevronRotate: Variants = {
   closed: { rotate: 0 },
   open: { rotate: 180, transition: { duration: 0.28, ease: "easeInOut" } },
+};
+
+// Blinking caret used with typewriter-style headings
+export const caretBlink: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: [1, 0, 1],
+    transition: {
+      duration: 0.9,
+      ease: "easeInOut",
+      repeat: Infinity,
+      repeatType: "loop",
+    },
+  },
 };
 
 export const dropdownMenu: Variants = {

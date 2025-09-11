@@ -10,6 +10,7 @@ import {
   staggerChildren,
   slideInFromRight,
   fadeInUp,
+  caretBlink,
 } from "./animations/motion";
 
 import SearchBar from "./SearchBar";
@@ -46,6 +47,34 @@ export function HomePage() {
 
   const [windUnit, setWindUnit] = useState<"kmh" | "mph">("kmh");
 
+  const fullTitle = `How's the sky looking today?`;
+  const [typedTitle, setTypedTitle] = useState("");
+  const [showCaret, setShowCaret] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    let idx = 0;
+    let timer: number | undefined;
+
+    function tick() {
+      if (!mounted) return;
+      if (idx <= fullTitle.length) {
+        setTypedTitle(fullTitle.slice(0, idx));
+        idx += 1;
+        timer = window.setTimeout(tick, 45);
+      } else {
+        setShowCaret(false);
+      }
+    }
+
+    timer = window.setTimeout(tick, 120);
+
+    return () => {
+      mounted = false;
+      if (timer) clearTimeout(timer);
+    };
+  }, [fullTitle]);
+
   useEffect(() => {
     try {
       const t = localStorage.getItem("wa_tempUnit");
@@ -56,7 +85,6 @@ export function HomePage() {
       const w = localStorage.getItem("wa_windUnit");
       if (w === "mph" || w === "kmh") setWindUnit(w as "kmh" | "mph");
     } catch {}
-
   }, []);
 
   type GeoResult = {
@@ -68,7 +96,6 @@ export function HomePage() {
   };
 
   useEffect(() => {
-
     let mounted = true;
 
     (async () => {
@@ -242,7 +269,18 @@ export function HomePage() {
           className={` ${bricolage_grotesque.className} text-center text-[52px] lg:text-7xl font-bold mt-12`}
           variants={fadeInUp}
         >
-          How&apos;s the sky looking today?
+          {typedTitle}
+          {showCaret && (
+            <motion.span
+              aria-hidden="true"
+              className="inline-block ml-1 align-middle"
+              variants={caretBlink}
+              initial="hidden"
+              animate="visible"
+            >
+              |
+            </motion.span>
+          )}
         </motion.h1>
 
         <div className="mt-12 lg:mt-16">
