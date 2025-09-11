@@ -26,6 +26,9 @@ const bricolage_grotesque = Bricolage_Grotesque({
   weight: ["300", "500", "600", "700"],
 });
 
+// Titles to cycle in the typewriter
+const titles = ["How's the sky looking today?", "Have a nice day!"];
+
 export function HomePage() {
   const [dayOpen, setDayOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -47,22 +50,28 @@ export function HomePage() {
 
   const [windUnit, setWindUnit] = useState<"kmh" | "mph">("kmh");
 
-  const fullTitle = `How's the sky looking today?`;
   const [typedTitle, setTypedTitle] = useState("");
   const [showCaret, setShowCaret] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
+  // Typewriter effect runs whenever the current title index changes
   useEffect(() => {
+    const title = titles[currentIndex] || "";
     let mounted = true;
     let idx = 0;
     let timer: number | undefined;
 
+    setTypedTitle("");
+    setShowCaret(true);
+
     function tick() {
       if (!mounted) return;
-      if (idx <= fullTitle.length) {
-        setTypedTitle(fullTitle.slice(0, idx));
+      if (idx <= title.length) {
+        setTypedTitle(title.slice(0, idx));
         idx += 1;
         timer = window.setTimeout(tick, 45);
       } else {
+        // finished typing, hide caret
         setShowCaret(false);
       }
     }
@@ -73,7 +82,14 @@ export function HomePage() {
       mounted = false;
       if (timer) clearTimeout(timer);
     };
-  }, [fullTitle]);
+  }, [currentIndex]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setCurrentIndex((i) => (i + 1) % titles.length);
+    }, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     try {
