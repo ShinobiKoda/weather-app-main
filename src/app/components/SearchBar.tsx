@@ -30,7 +30,6 @@ export default function SearchBar({
   suggestionLoading,
   selectSuggestion,
 }: Props) {
- 
   const hasQuery = query && query.trim().length > 0;
   const showList = suggestionLoading || hasQuery;
   return (
@@ -60,7 +59,7 @@ export default function SearchBar({
             whileHover="hover"
             whileTap="tap"
           >
-            <IoMdClose size={25}/>
+            <IoMdClose size={25} />
           </motion.button>
         )}
       </div>
@@ -74,15 +73,21 @@ export default function SearchBar({
         >
           <p className="font-medium text-base flex items-center gap-2">
             {suggestionLoading ? (
-              <ClipLoader color="white" size={20} />
+              <>
+                <ClipLoader color="white" size={20} />
+                <span>Loading cities</span>
+              </>
             ) : (
-              <ClipLoader color="white" size={20} />
+              <span>City</span>
             )}
-            <span className="text-right">City</span>
           </p>
           <div className="w-full text-right">
             {suggestions.length === 0 ? (
-              <div className="text-sm text-neutral-400">No suggestions</div>
+              suggestionLoading ? null : (
+                <div className="text-sm text-neutral-400">
+                  No city suggestions
+                </div>
+              )
             ) : (
               <ul className="space-y-2 mt-2 max-h-[164px] overflow-y-scroll">
                 {suggestions.map((s) => (
