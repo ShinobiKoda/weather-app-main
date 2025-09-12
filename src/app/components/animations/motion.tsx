@@ -286,6 +286,55 @@ export const drizzleFloat: Variants = {
   },
 };
 
+export const rainDrop: Variants = {
+  hidden: { y: -100, opacity: 0 },
+  // Use viewport-relative motion so drops travel the full hero height and past the bottom
+  visible: (custom: { delay: number; duration: number }) => ({
+    // start slightly above (-10vh) and move well past the bottom (110vh) so they cross the hero
+    y: ["-10vh", "110vh"],
+    opacity: [0, 1, 1, 0],
+    transition: {
+      duration: custom.duration, // unique per drop
+      ease: "linear",
+      delay: custom.delay, // unique per drop
+      repeat: Infinity,
+    },
+  }),
+};
+
+// Slower, subtler lines for drizzle / partly cloudy "light fall" effect
+export const drizzleLine: Variants = {
+  hidden: { y: -10, opacity: 0 },
+  visible: (custom: number = 0) => ({
+    y: [-10, 160],
+    opacity: [0, 0.85, 0.6],
+    transition: {
+      duration: 1.6,
+      ease: "linear",
+      delay: custom,
+      repeat: Infinity,
+      repeatType: "loop",
+    },
+  }),
+};
+
+// Small splatter animation played when a raindrop reaches the bottom
+export const splatter: Variants = {
+  hidden: { scale: 0.6, opacity: 0, y: 0 },
+  visible: (custom: number = 0) => ({
+    scale: [0.6, 1.05, 0.9],
+    opacity: [0, 0.9, 0.6, 0],
+    y: [0, -6, 0],
+    transition: {
+      duration: 0.45,
+      ease: "easeOut",
+      delay: custom,
+      repeat: Infinity,
+      repeatType: "loop",
+    },
+  }),
+};
+
 export const snowFloat: Variants = {
   hidden: { y: 0, opacity: 0.98 },
   visible: {

@@ -54,7 +54,6 @@ export function HomePage() {
   const [showCaret, setShowCaret] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Typewriter effect runs whenever the current title index changes
   useEffect(() => {
     const title = titles[currentIndex] || "";
     let mounted = true;
@@ -180,9 +179,7 @@ export function HomePage() {
         const country = first.country || "";
         if (place && country) setLocation(`${place}, ${country}`);
         else if (first.name) setLocation(String(first.name));
-      } catch {
-        // ignore
-      }
+      } catch {}
     } catch (e) {
       console.error(e);
     } finally {
