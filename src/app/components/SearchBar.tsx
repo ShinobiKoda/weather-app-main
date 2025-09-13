@@ -23,14 +23,12 @@ type Props = {
   suggestionLoading: boolean;
   selectSuggestion: (item: SuggestionItem) => Promise<void> | void;
   onClose?: () => void;
-  onOpen?: () => void; // called when input is focused (useful to open mobile modal)
-  autoFocus?: boolean; // when true, focus the internal input (used by modal)
-  closeOnOutsideClick?: boolean; // when true, clicking outside always calls onClose
+  onOpen?: () => void;
+  autoFocus?: boolean;
+  closeOnOutsideClick?: boolean;
 };
 
-// Minimal runtime typing for browser speech APIs to keep TypeScript happy
 declare global {
-  // A minimal shape of the SpeechRecognition constructor/instance we need
   class SpeechRecognition {
     continuous: boolean;
     interimResults: boolean;
@@ -85,11 +83,9 @@ export default function SearchBar({
       const target = e.target as Node | null;
       if (!containerRef.current) return;
       if (target && !containerRef.current.contains(target)) {
-        // if suggestion list was open, hide it and notify parent
         if (showList) {
           setHideList(true);
           if (onClose) onClose();
-          // stop voice recognition when closing the overlay
           if (recognitionRef.current) {
             try {
               recognitionRef.current.stop();
@@ -99,7 +95,6 @@ export default function SearchBar({
           return;
         }
 
-        // if parent explicitly requested closing on outside click (modal), do it
         if (closeOnOutsideClick && onClose) {
           setHideList(true);
           if (recognitionRef.current) {
@@ -117,7 +112,6 @@ export default function SearchBar({
     document.addEventListener("pointerdown", handlePointerDown);
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [showList, onClose, closeOnOutsideClick]);
-  // Initialize SpeechRecognition when component mounts (if supported)
   React.useEffect(() => {
     const localWin =
       typeof window !== "undefined" ? (window as unknown as Window) : undefined;
@@ -146,7 +140,6 @@ export default function SearchBar({
     };
 
     recog.onerror = (e) => {
-      // Safe extractor: try to read common fields but isolate possible throwing getters
       const extract = (obj: unknown) => {
         try {
           if (typeof obj === "object" && obj !== null) {
@@ -198,10 +191,8 @@ export default function SearchBar({
     } catch {}
   }, [active]);
 
-  // focus the input when `autoFocus` becomes true (e.g., modal opened)
   React.useEffect(() => {
     if (!autoFocus) return;
-    // small delay to ensure modal has rendered and mobile keyboard opens
     const t = window.setTimeout(() => {
       try {
         inputRef.current?.focus();
@@ -218,7 +209,6 @@ export default function SearchBar({
           value={query ?? ""}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => {
-            // if parent supplied onOpen, call it (e.g. to show mobile modal)
             if (onOpen) onOpen();
           }}
           onKeyDown={(e) => {
@@ -266,7 +256,6 @@ export default function SearchBar({
             />
           </motion.svg>
         </motion.button>
-        {/* Start/Stop recognition when active toggles */}
         {(hasQuery || suggestionLoading) && (
           <motion.button
             type="button"
@@ -276,7 +265,6 @@ export default function SearchBar({
             onClick={() => {
               if (hasQuery) setQuery("");
               else if (onClose) onClose();
-              // stop speech recognition if active
               if (recognitionRef.current) {
                 try {
                   recognitionRef.current.stop();
@@ -324,7 +312,6 @@ export default function SearchBar({
                   <li key={s.id}>
                     <button
                       onClick={async (e) => {
-                        // prevent the click from reaching underlying elements once modal closes
                         e.preventDefault();
                         e.stopPropagation();
 
@@ -336,14 +323,11 @@ export default function SearchBar({
                           setActive(false);
                         }
 
-                        // hide suggestions in UI
                         setHideList(true);
 
-                        // trigger selection first so the app fetches and displays results
                         setQuery("");
                         await selectSuggestion(s);
 
-                        // finally, close the modal (if provided)
                         if (onClose) onClose();
                       }}
                       className="w-full text-left text-base font-medium hover:bg-neutral-700 hover:border border-neutral-600 rounded-lg px-2 py-2.5 cursor-pointer"

@@ -359,7 +359,7 @@ function WeatherHero({
         <motion.div
           className={
             loading
-              ? "h-[286px] rounded-3xl hidden lg:flex flex-row items-center justify-between px-8 relative overflow-hidden skeleton bg-neutral-700"
+              ? "h-[286px] rounded-3xl hidden lg:flex flex-row items-center justify-between px-8 relative overflow-hidden skeleton bg-neutral-800"
               : "bg-cover bg-center h-[286px] rounded-3xl hidden lg:flex flex-row items-center justify-between px-8 relative overflow-hidden"
           }
           style={
@@ -394,7 +394,6 @@ function WeatherHero({
               );
             })()}
 
-          {/* falling rain/drizzle lines (desktop randomized) */}
           {isCurrentlyRaining && (
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
               {rainDrops.map((d) => (

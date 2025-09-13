@@ -362,7 +362,6 @@ export const fogDrift: Variants = {
   },
 };
 
-// Full-hero overlay variants for weather effects (used as background overlays)
 export const rainOverlay: Variants = {
   hidden: { opacity: 0 },
   visible: {
