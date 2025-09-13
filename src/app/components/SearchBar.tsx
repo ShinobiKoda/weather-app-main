@@ -1,8 +1,10 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { IoIosSearch, IoMdClose } from "react-icons/io";
 import { ClipLoader } from "react-spinners";
 import { motion } from "motion/react";
+import { CiMicrophoneOn } from "react-icons/ci";
+
 import { scaleOnHover } from "./animations/motion";
 
 type SuggestionItem = {
@@ -23,6 +25,32 @@ type Props = {
   onClose?: () => void;
 };
 
+// Minimal runtime typing for browser speech APIs to keep TypeScript happy
+declare global {
+  // A minimal shape of the SpeechRecognition constructor/instance we need
+  class SpeechRecognition {
+    continuous: boolean;
+    interimResults: boolean;
+    lang: string;
+    onresult:
+      | ((e: {
+          resultIndex: number;
+          results: Array<{ isFinal: boolean; 0: { transcript: string } }>;
+        }) => void)
+      | null;
+    onerror: ((e: unknown) => void) | null;
+    onend: (() => void) | null;
+    start(): void;
+    stop(): void;
+    constructor();
+  }
+
+  interface Window {
+    webkitSpeechRecognition?: typeof SpeechRecognition;
+    SpeechRecognition?: typeof SpeechRecognition;
+  }
+}
+
 export default function SearchBar({
   query,
   setQuery,
@@ -34,6 +62,8 @@ export default function SearchBar({
 }: Props) {
   const hasQuery = query && query.trim().length > 0;
   const [hideList, setHideList] = React.useState(false);
+  const [active, setActive] = useState(false);
+  const recognitionRef = React.useRef<SpeechRecognition | null>(null);
 
   const showList = (suggestionLoading || hasQuery) && !hideList;
 
@@ -51,6 +81,13 @@ export default function SearchBar({
         if (showList) {
           setHideList(true);
           if (onClose) onClose();
+          // stop voice recognition when closing the overlay
+          if (recognitionRef.current) {
+            try {
+              recognitionRef.current.stop();
+            } catch {}
+            setActive(false);
+          }
         }
       }
     }
@@ -58,6 +95,86 @@ export default function SearchBar({
     document.addEventListener("pointerdown", handlePointerDown);
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, [showList, onClose]);
+  // Initialize SpeechRecognition when component mounts (if supported)
+  React.useEffect(() => {
+    const localWin =
+      typeof window !== "undefined" ? (window as unknown as Window) : undefined;
+    if (typeof localWin === "undefined") return;
+    const SR = localWin.SpeechRecognition || localWin.webkitSpeechRecognition;
+    if (!SR) return;
+
+    const recog: SpeechRecognition = new SR();
+    recog.continuous = true;
+    recog.interimResults = true;
+    recog.lang = "en-US";
+    recog.onresult = (event) => {
+      let interim = "";
+      let final = "";
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        const result = event.results[i];
+        if (result.isFinal) final += result[0].transcript;
+        else interim += result[0].transcript;
+      }
+
+      if (final.trim().length > 0) {
+        setQuery(final.trim());
+      } else if (interim.trim().length > 0) {
+        setQuery(interim.trim());
+      }
+    };
+
+    recog.onerror = (e) => {
+      // Safe extractor: try to read common fields but isolate possible throwing getters
+      const extract = (obj: unknown) => {
+        try {
+          if (typeof obj === "object" && obj !== null) {
+            const o = obj as Record<string, unknown>;
+            if (Object.prototype.hasOwnProperty.call(o, "error"))
+              return o["error"];
+            if (Object.prototype.hasOwnProperty.call(o, "message"))
+              return o["message"];
+          }
+          return obj;
+        } catch {
+          return "<unreadable>";
+        }
+      };
+
+      try {
+        console.warn("Speech recognition error (onerror):", extract(e));
+      } catch {
+        console.warn("Speech recognition error (onerror): unknown");
+      }
+
+      setActive(false);
+      try {
+        if (recog && typeof recog.stop === "function") recog.stop();
+      } catch {
+        // ignore stop errors
+      }
+    };
+
+    recog.onend = () => {
+      setActive(false);
+    };
+
+    recognitionRef.current = recog;
+
+    return () => {
+      try {
+        recog.stop();
+      } catch {}
+      recognitionRef.current = null;
+    };
+  }, [setQuery]);
+
+  React.useEffect(() => {
+    if (!recognitionRef.current) return;
+    try {
+      if (active) recognitionRef.current.start();
+      else recognitionRef.current.stop();
+    } catch {}
+  }, [active]);
   return (
     <div className="w-full relative lg:static" ref={containerRef}>
       <div className="w-full flex items-center bg-neutral-800 rounded-xl gap-2 text-xl text-neutral-200 font-medium p-4 lg:p-0">
@@ -73,6 +190,44 @@ export default function SearchBar({
           placeholder="Search for a place..."
           aria-label="location-search"
         />
+        <motion.button
+          onClick={() => setActive(!active)}
+          variants={scaleOnHover}
+          initial="hover"
+          whileHover="hover"
+          whileTap="tap"
+          className="relative w-8 h-8 flex items-center justify-center cursor-pointer"
+        >
+          <motion.div
+            animate={{
+              color: active ? "#ffffff" : "#737373",
+            }}
+            transition={{ duration: 0.5 }}
+          >
+            <CiMicrophoneOn size={25} />
+          </motion.div>
+
+          <motion.svg
+            viewBox="0 0 25 25"
+            className="absolute w-6 h-6"
+            initial={false}
+            animate={
+              active ? { scale: 1, opacity: 0 } : { scale: 1, opacity: 1 }
+            }
+            transition={{ duration: 0.4 }}
+          >
+            <motion.line
+              x1="3"
+              y1="22"
+              x2="22"
+              y2="3"
+              stroke="#737373"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </motion.svg>
+        </motion.button>
+        {/* Start/Stop recognition when active toggles */}
         {(hasQuery || suggestionLoading) && (
           <motion.button
             type="button"
@@ -82,6 +237,13 @@ export default function SearchBar({
             onClick={() => {
               if (hasQuery) setQuery("");
               else if (onClose) onClose();
+              // stop speech recognition if active
+              if (recognitionRef.current) {
+                try {
+                  recognitionRef.current.stop();
+                } catch {}
+                setActive(false);
+              }
             }}
             variants={scaleOnHover}
             initial="hidden"
@@ -123,13 +285,16 @@ export default function SearchBar({
                   <li key={s.id}>
                     <button
                       onClick={async () => {
-                        // hide suggestions immediately for snappy UX
                         setHideList(true);
-                        // clear the input in the UI immediately
                         setQuery("");
-                        // call parent selection handler
+                        // stop recognition if active
+                        if (recognitionRef.current) {
+                          try {
+                            recognitionRef.current.stop();
+                          } catch {}
+                          setActive(false);
+                        }
                         await selectSuggestion(s);
-                        // if parent provided onClose (mobile overlay), close it
                         if (onClose) onClose();
                       }}
                       className="w-full text-left text-base font-medium hover:bg-neutral-700 hover:border border-neutral-600 rounded-lg px-2 py-2.5 cursor-pointer"
