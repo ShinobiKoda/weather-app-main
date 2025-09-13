@@ -310,7 +310,7 @@ export function HomePage() {
               suggestions={suggestions}
               suggestionLoading={suggestionLoading}
               selectSuggestion={selectSuggestion}
-              onClose={() => setMobileSearchOpen(false)}
+              onOpen={() => setMobileSearchOpen(true)}
             />
             <motion.button
               whileHover={{ scale: 1.02 }}
@@ -334,6 +334,8 @@ export function HomePage() {
                   suggestionLoading={suggestionLoading}
                   selectSuggestion={selectSuggestion}
                   onClose={() => setMobileSearchOpen(false)}
+                  autoFocus={mobileSearchOpen}
+                  closeOnOutsideClick={true}
                 />
               </div>
             </div>
