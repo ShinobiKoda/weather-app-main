@@ -20,6 +20,7 @@ type Props = {
   suggestions: SuggestionItem[];
   suggestionLoading: boolean;
   selectSuggestion: (item: SuggestionItem) => Promise<void> | void;
+  onClose?: () => void;
 };
 
 export default function SearchBar({
@@ -29,11 +30,36 @@ export default function SearchBar({
   suggestions,
   suggestionLoading,
   selectSuggestion,
+  onClose,
 }: Props) {
   const hasQuery = query && query.trim().length > 0;
-  const showList = suggestionLoading || hasQuery;
+  const [hideList, setHideList] = React.useState(false);
+
+  const showList = (suggestionLoading || hasQuery) && !hideList;
+
+  React.useEffect(() => {
+    setHideList(false);
+  }, [query, suggestionLoading, suggestions.length]);
+
+  const containerRef = React.useRef<HTMLDivElement | null>(null);
+
+  React.useEffect(() => {
+    function handlePointerDown(e: PointerEvent) {
+      const target = e.target as Node | null;
+      if (!containerRef.current) return;
+      if (target && !containerRef.current.contains(target)) {
+        if (showList) {
+          setHideList(true);
+          if (onClose) onClose();
+        }
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [showList, onClose]);
   return (
-    <div className="w-full relative lg:static">
+    <div className="w-full relative lg:static" ref={containerRef}>
       <div className="w-full flex items-center bg-neutral-800 rounded-xl gap-2 text-xl text-neutral-200 font-medium p-4 lg:p-0">
         <IoIosSearch size={25} />
         <input
@@ -51,9 +77,12 @@ export default function SearchBar({
           <motion.button
             type="button"
             aria-label="clear-search"
-            title="Clear search"
+            title={hasQuery ? "Clear search" : "Close search"}
             className="text-neutral-300 cursor-pointer"
-            onClick={() => setQuery("")}
+            onClick={() => {
+              if (hasQuery) setQuery("");
+              else if (onClose) onClose();
+            }}
             variants={scaleOnHover}
             initial="hidden"
             whileHover="hover"
@@ -93,7 +122,16 @@ export default function SearchBar({
                 {suggestions.map((s) => (
                   <li key={s.id}>
                     <button
-                      onClick={() => selectSuggestion(s)}
+                      onClick={async () => {
+                        // hide suggestions immediately for snappy UX
+                        setHideList(true);
+                        // clear the input in the UI immediately
+                        setQuery("");
+                        // call parent selection handler
+                        await selectSuggestion(s);
+                        // if parent provided onClose (mobile overlay), close it
+                        if (onClose) onClose();
+                      }}
                       className="w-full text-left text-base font-medium hover:bg-neutral-700 hover:border border-neutral-600 rounded-lg px-2 py-2.5 cursor-pointer"
                     >
                       {s.name}

@@ -108,6 +108,28 @@ function WeatherHero({
     (c >= 95 && c <= 99);
   const isDrizzle = (c: number) => c >= 51 && c <= 57;
 
+  // Use actual precipitation data (if available) to decide whether to show
+  // falling rain/drizzle animations. If precipitation value is available
+  // consider precipitation > 0 as "currently raining". If not available,
+  // fall back to precipitation probability >= 30% as a weaker heuristic.
+  const currentPrecip = weather?.properties?.precipitation ?? null;
+  const currentPrecipProb =
+    weather?.properties?.precipitation_probability ?? null;
+
+  const isCurrentlyRaining = (() => {
+    if (!isRain(code)) return false;
+    if (currentPrecip !== null) return currentPrecip > 0;
+    if (currentPrecipProb !== null) return currentPrecipProb >= 50; // conservative
+    return false;
+  })();
+
+  const isCurrentlyDrizzling = (() => {
+    if (!isDrizzle(code)) return false;
+    if (currentPrecip !== null) return currentPrecip > 0;
+    if (currentPrecipProb !== null) return currentPrecipProb >= 35; // conservative
+    return false;
+  })();
+
   // Generate stable randomised drops so re-renders (e.g. the typewriter) don't recreate them
   type Drop = {
     id: string;
@@ -118,7 +140,7 @@ function WeatherHero({
     slant: number;
   };
   const rainDrops = useMemo<Drop[]>(() => {
-    if (!isRain(code)) return [];
+    if (!isCurrentlyRaining) return [];
     const count = 70;
     return Array.from({ length: count }).map((_, i) => {
       const left = Math.random() * 100;
@@ -128,7 +150,7 @@ function WeatherHero({
       const slant = -10 + Math.random() * 6; // little wind slant
       return { id: `drop-${i}`, left, size, delay, duration, slant };
     });
-  }, [code]);
+  }, [isCurrentlyRaining]);
 
   type DrizzleLine = {
     id: string;
@@ -139,7 +161,7 @@ function WeatherHero({
     color: string;
   };
   const drizzleLines = useMemo<DrizzleLine[]>(() => {
-    if (!isDrizzle(code)) return [];
+    if (!isCurrentlyDrizzling) return [];
     const count = 20;
     return Array.from({ length: count }).map((_, i) => {
       const left = Math.random() * 100;
@@ -150,12 +172,12 @@ function WeatherHero({
       const color = `rgba(170,190,210,${opacity})`;
       return { id: `drizzle-${i}`, left, height, angle, delay, color };
     });
-  }, [code]);
+  }, [isCurrentlyDrizzling]);
 
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        key={keyId} 
+        key={keyId}
         className="w-full"
         initial="hidden"
         animate="visible"
@@ -185,16 +207,24 @@ function WeatherHero({
             transition={{ duration: 0.5 }}
           />
 
-          {overlayVariant && (
-            <motion.div
-              variants={overlayVariant}
-              initial="hidden"
-              animate="visible"
-              className="absolute inset-0 pointer-events-none"
-            />
-          )}
+          {overlayVariant &&
+            (() => {
+              // Only show rain/drizzle overlays when precipitation is actually happening
+              if (overlayVariant === rainOverlay && !isCurrentlyRaining)
+                return null;
+              if (overlayVariant === drizzleOverlay && !isCurrentlyDrizzling)
+                return null;
+              return (
+                <motion.div
+                  variants={overlayVariant}
+                  initial="hidden"
+                  animate="visible"
+                  className="absolute inset-0 pointer-events-none"
+                />
+              );
+            })()}
 
-          {isRain(code) && (
+          {isCurrentlyRaining && (
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
               {rainDrops.map((d) => (
                 <motion.div
@@ -254,7 +284,7 @@ function WeatherHero({
             </div>
           )}
 
-          {isDrizzle(code) && (
+          {isCurrentlyDrizzling && (
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
               {drizzleLines.map((l) => (
                 <motion.div
@@ -348,17 +378,24 @@ function WeatherHero({
             transition={{ duration: 0.5 }}
           />
 
-          {overlayVariant && (
-            <motion.div
-              variants={overlayVariant}
-              initial="hidden"
-              animate="visible"
-              className="absolute inset-0 pointer-events-none"
-            />
-          )}
+          {overlayVariant &&
+            (() => {
+              if (overlayVariant === rainOverlay && !isCurrentlyRaining)
+                return null;
+              if (overlayVariant === drizzleOverlay && !isCurrentlyDrizzling)
+                return null;
+              return (
+                <motion.div
+                  variants={overlayVariant}
+                  initial="hidden"
+                  animate="visible"
+                  className="absolute inset-0 pointer-events-none"
+                />
+              );
+            })()}
 
           {/* falling rain/drizzle lines (desktop randomized) */}
-          {isRain(code) && (
+          {isCurrentlyRaining && (
             <div className="absolute inset-0 pointer-events-none overflow-hidden">
               {rainDrops.map((d) => (
                 <motion.div

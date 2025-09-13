@@ -46,6 +46,8 @@ export function HomePage() {
   >([]);
   const [suggestionLoading, setSuggestionLoading] = useState(false);
 
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+
   const [tempUnit, setTempUnit] = useState<"C" | "F">("C");
 
   const [windUnit, setWindUnit] = useState<"kmh" | "mph">("kmh");
@@ -308,16 +310,34 @@ export function HomePage() {
               suggestions={suggestions}
               suggestionLoading={suggestionLoading}
               selectSuggestion={selectSuggestion}
+              onClose={() => setMobileSearchOpen(false)}
             />
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className="p-4 rounded-xl bg-blue-500 w-full lg:w-34 text-xl font-medium"
-              onClick={handleSearch}
+              onClick={() => setMobileSearchOpen(true)}
             >
               Search
             </motion.button>
           </motion.div>
+
+          {/* Mobile overlay for search */}
+          {mobileSearchOpen && (
+            <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-6 lg:hidden">
+              <div className="w-full max-w-md">
+                <SearchBar
+                  query={query}
+                  setQuery={setQuery}
+                  handleSearch={handleSearch}
+                  suggestions={suggestions}
+                  suggestionLoading={suggestionLoading}
+                  selectSuggestion={selectSuggestion}
+                  onClose={() => setMobileSearchOpen(false)}
+                />
+              </div>
+            </div>
+          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 min-h-[700px]">
             <div className="mt-8 flex flex-col">
