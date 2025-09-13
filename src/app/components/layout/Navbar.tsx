@@ -72,7 +72,23 @@ export function Navbar({
           initial="hidden"
           animate={open ? "visible" : "hidden"}
         >
-          <h3 className="font-medium text-base mb-3.5">Switch to Metric</h3>
+          <button
+            className="font-medium text-base mb-3.5 w-full text-left hover:bg-neutral-700 rounded-lg cursor-pointer px-2 py-2.5"
+            onClick={() => {
+              if (tempUnit === "C" || windUnit === "kmh") {
+                setTempUnit("F");
+                setWindUnit("mph");
+              } else {
+                setTempUnit("C");
+                setWindUnit("kmh");
+              }
+            }}
+          >
+            {tempUnit === "C" || windUnit === "kmh"
+              ? "Switch to Imperial"
+              : "Switch to Metric"}
+          </button>
+
           <div className="space-y-2">
             <h4 className="font-medium text-sm text-neutral-300">
               Temperature
