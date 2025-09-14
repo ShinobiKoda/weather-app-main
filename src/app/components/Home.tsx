@@ -1,7 +1,7 @@
 "use client";
 import { Navbar } from "./layout/Navbar";
 import { motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import fetchWeather, { WeatherPayload } from "../api/open-meto";
 import { fetchUserLocation } from "@/lib/fetchUserLocation";
 import { Bricolage_Grotesque } from "next/font/google";
@@ -19,6 +19,51 @@ import StatsGrid from "./StatsGrid";
 import DailyForecast from "./DailyForecast";
 import HourlyForecast from "./HourlyForecast";
 import { formatLongDate as defaultFormatLongDate } from "./utils";
+import Background from "./Background";
+
+// Minimal mapping from Open-Meteo weather codes to simple kinds
+function deriveWeatherKind(weather: WeatherPayload | null | undefined): string {
+  if (!weather) return "clear";
+  // Try to safely extract a weather code from the payload without using `any`
+  const w = weather as unknown;
+  if (typeof w !== "object" || w === null) return "clear";
+  const wObj = w as Record<string, unknown>;
+
+  let codeValue: number | string | null = null;
+
+  // current_weather?.weathercode
+  if ("current_weather" in wObj) {
+    const cw = wObj.current_weather as Record<string, unknown> | undefined;
+    if (cw && "weathercode" in cw) {
+      const vc = cw.weathercode as number | string | undefined;
+      if (typeof vc === "number" || typeof vc === "string") codeValue = vc;
+    }
+  }
+
+  // fallback: hourly.weathercode[0]
+  if (codeValue == null && "hourly" in wObj) {
+    const hourly = wObj.hourly as Record<string, unknown> | undefined;
+    if (hourly && "weathercode" in hourly) {
+      const wc = hourly.weathercode as unknown;
+      if (Array.isArray(wc) && wc.length > 0) {
+        const first = wc[0];
+        if (typeof first === "number" || typeof first === "string")
+          codeValue = first as number | string;
+      }
+    }
+  }
+
+  if (codeValue == null) return "clear";
+  const c = Number(codeValue);
+  // 0 clear, 1-3 partly/cloudy, 45-48 fog, 51-67 drizzle/rain, 71-77 snow, 80-82 rain, 95-99 storm
+  if (c === 0) return "clear";
+  if (c >= 1 && c <= 3) return "partly-cloudy";
+  if (c >= 45 && c <= 48) return "fog";
+  if ((c >= 51 && c <= 67) || (c >= 80 && c <= 82)) return "rain";
+  if (c >= 71 && c <= 77) return "snow";
+  if (c >= 95 && c <= 99) return "storm";
+  return "overcast";
+}
 
 const bricolage_grotesque = Bricolage_Grotesque({
   variable: "--font-bricolage_grotesque",
@@ -55,6 +100,10 @@ export function HomePage() {
   const [typedTitle, setTypedTitle] = useState("");
   const [showCaret, setShowCaret] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
+  // time preview slider state: offset in hours (-12..+12)
+  const [previewOffset, setPreviewOffset] = useState<number>(0);
+  const [isDraggingTime, setIsDraggingTime] = useState(false);
+  const releaseTimeout = useRef<number | null>(null);
 
   useEffect(() => {
     const title = titles[currentIndex] || "";
@@ -273,6 +322,16 @@ export function HomePage() {
       initial="hidden"
       animate="visible"
     >
+      {/* Background visual layer */}
+      <Background
+        kind={deriveWeatherKind(weather)}
+        forcedHour={(() => {
+          if (!isDraggingTime) return undefined as unknown as number | null;
+          const now = new Date();
+          const h = (now.getHours() + previewOffset + 24) % 24;
+          return h;
+        })()}
+      />
       <Navbar
         tempUnit={tempUnit}
         setTempUnit={setTempUnit}
@@ -299,6 +358,57 @@ export function HomePage() {
         </motion.h1>
 
         <div className="mt-12 lg:mt-16">
+          {/* Time slider & progress bar (preview last 12h -> next 12h) */}
+          <div className="max-w-[900px] mx-auto mb-6 px-4">
+            <label className="text-sm text-neutral-200 mb-2 block">
+              Preview time of day
+            </label>
+            <input
+              type="range"
+              min={-12}
+              max={12}
+              step={1}
+              value={previewOffset}
+              onChange={(e) => {
+                const v = Number(e.target.value);
+                setPreviewOffset(v);
+              }}
+              onMouseDown={() => {
+                if (releaseTimeout.current)
+                  window.clearTimeout(releaseTimeout.current);
+                setIsDraggingTime(true);
+              }}
+              onTouchStart={() => {
+                if (releaseTimeout.current)
+                  window.clearTimeout(releaseTimeout.current);
+                setIsDraggingTime(true);
+              }}
+              onMouseUp={() => {
+                setIsDraggingTime(false);
+                // animate return to now after 600ms
+                releaseTimeout.current = window.setTimeout(
+                  () => setPreviewOffset(0),
+                  600
+                );
+              }}
+              onTouchEnd={() => {
+                setIsDraggingTime(false);
+                releaseTimeout.current = window.setTimeout(
+                  () => setPreviewOffset(0),
+                  600
+                );
+              }}
+              className="w-full"
+            />
+            <div className="w-full h-2 bg-white/10 rounded-full mt-2 relative overflow-hidden">
+              {/* progress fill: map -12..+12 to 0..100% where 0 => -12h, 50% => now, 100% => +12h */}
+              <div
+                className="absolute left-0 top-0 bottom-0 bg-white/40"
+                style={{ width: `${((previewOffset + 12) / 24) * 100}%` }}
+              />
+              <div className="absolute top-0 bottom-0 left-1/2 w-[2px] bg-white/60" />
+            </div>
+          </div>
           <motion.div
             className="flex flex-col lg:flex-row lg:items-center gap-4 lg:justify-center max-w-[1024px] mx-auto md:grid md:grid-cols-[3fr_1fr] lg:hidden items-center"
             variants={slideInFromRight}

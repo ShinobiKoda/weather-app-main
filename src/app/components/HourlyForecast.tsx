@@ -195,8 +195,13 @@ export default function HourlyForecast({
           : (hoursToShow || []).map((h: HourlyForecastItem, index: number) => (
               <motion.div
                 key={index}
-                className="rounded-lg bg-neutral-700 flex items-center justify-between px-4 h-[60px] border border-neutral-600"
+                className="rounded-lg bg-neutral-700 flex items-center justify-between px-4 h-[60px] border border-neutral-600 cursor-pointer"
                 variants={fadeInUp}
+                whileHover={{ y: -6, scale: 1.02 }}
+                whileTap={{ scale: 0.985 }}
+                transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                role="button"
+                tabIndex={0}
               >
                 <div className="flex items-center gap-2">
                   <Image src={h.icon} alt="Weather" width={50} height={50} />

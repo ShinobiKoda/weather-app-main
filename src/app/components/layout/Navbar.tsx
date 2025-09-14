@@ -96,7 +96,7 @@ export function Navbar({
             <motion.button
               type="button"
               onClick={() => setTempUnit("C")}
-              className={`font-medium text-base w-full flex items-center justify-between rounded-lg px-2 py-2.5 ${
+              className={`font-medium text-base w-full flex items-center justify-between rounded-lg px-2 py-2.5 hover:bg-neutral-700 ${
                 tempUnit === "C" ? "bg-neutral-700" : ""
               } cursor-pointer`}
               whileHover={{ scale: 1.02 }}
@@ -109,7 +109,7 @@ export function Navbar({
             <motion.button
               type="button"
               onClick={() => setTempUnit("F")}
-              className={`font-medium text-base w-full flex items-center justify-between px-2 py-2.5 ${
+              className={`font-medium text-base w-full flex items-center justify-between hover:bg-neutral-700 rounded-lg px-2 py-2.5 ${
                 tempUnit === "F" ? "bg-neutral-700 rounded-lg" : ""
               } cursor-pointer`}
               whileHover={{ scale: 1.02 }}
@@ -126,7 +126,7 @@ export function Navbar({
             <motion.button
               type="button"
               onClick={() => setWindUnit("kmh")}
-              className={`font-medium text-base w-full flex items-center justify-between rounded-lg px-2 py-2.5 ${
+              className={`font-medium text-base w-full flex items-center justify-between hover:bg-neutral-700 rounded-lg px-2 py-2.5 ${
                 windUnit === "kmh" ? "bg-neutral-700" : ""
               } cursor-pointer`}
               whileHover={{ scale: 1.02 }}
@@ -139,7 +139,7 @@ export function Navbar({
             <motion.button
               type="button"
               onClick={() => setWindUnit("mph")}
-              className={`font-medium text-base w-full flex items-center justify-between px-2 py-2.5 ${
+              className={`font-medium text-base w-full flex items-center justify-between hover:bg-neutral-700 rounded-lg px-2 py-2.5 ${
                 windUnit === "mph" ? "bg-neutral-700 rounded-lg" : ""
               } cursor-pointer`}
               whileHover={{ scale: 1.02 }}

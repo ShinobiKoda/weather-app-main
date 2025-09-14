@@ -268,6 +268,53 @@ export const cloudDrift: Variants = {
   },
 };
 
+// Parallax cloud layer variants with slightly different speeds
+export const cloudLayerSlow: Variants = {
+  hidden: { x: "-30%", opacity: 0.9 },
+  visible: (custom: number = 0) => ({
+    // move from well left of screen to off the right, then loop
+    x: ["-30%", "110%"],
+    opacity: [0.88, 0.95],
+    transition: {
+      duration: 38 + custom, // slowest, long loop
+      ease: "linear",
+      repeat: Infinity,
+      repeatType: "loop",
+      delay: custom,
+    },
+  }),
+};
+
+export const cloudLayerMed: Variants = {
+  hidden: { x: "-30%", opacity: 0.95 },
+  visible: (custom: number = 0) => ({
+    x: ["-30%", "110%"],
+    opacity: [0.9, 0.98],
+    transition: {
+      duration: 22 + custom,
+      ease: "linear",
+      repeat: Infinity,
+      repeatType: "loop",
+      delay: custom,
+    },
+  }),
+};
+
+export const cloudLayerFast: Variants = {
+  hidden: { x: "-30%", opacity: 0.98 },
+  visible: (custom: number = 0) => ({
+    x: ["-30%", "110%"],
+    opacity: [0.95, 1],
+    transition: {
+      duration: 12 + custom,
+      ease: "linear",
+      repeat: Infinity,
+      repeatType: "loop",
+      delay: custom,
+    },
+  }),
+};
+
 export const rainJitter: Variants = {
   hidden: { y: 0, opacity: 0.95 },
   visible: {
@@ -412,4 +459,79 @@ export const sunOverlay: Variants = {
     opacity: [0, 0.06, 0],
     transition: { duration: 6, ease: "easeInOut", repeat: Infinity },
   },
+};
+
+// Stars twinkling: custom is used as a small delay/seed
+export const starTwinkle: Variants = {
+  hidden: { opacity: 0 },
+  visible: (custom: number = 0) => ({
+    opacity: [0.15, 1, 0.15],
+    transition: {
+      duration: 2 + ((custom * 7) % 3),
+      ease: "easeInOut",
+      repeat: Infinity,
+      delay: custom,
+    },
+  }),
+};
+
+// Shooting star: moves quickly diagonally across the sky, repeats with a long delay
+export const shootingStar: Variants = {
+  hidden: { opacity: 0, x: -20, y: -20 },
+  visible: (custom: number = 0) => ({
+    opacity: [0, 1, 0],
+    x: ["-10%", "120%"],
+    y: ["-10%", "120%"],
+    transition: {
+      duration: 0.9,
+      ease: "easeOut",
+      repeat: Infinity,
+      delay: custom,
+      repeatDelay: 8 + (custom % 6),
+    },
+  }),
+};
+
+// Lightning flash used for storms
+export const lightningFlash: Variants = {
+  hidden: { opacity: 0 },
+  visible: (custom: number = 0) => ({
+    opacity: [0, 1, 0, 0.8, 0],
+    transition: {
+      duration: 0.9,
+      ease: "easeInOut",
+      repeat: Infinity,
+      delay: custom,
+      repeatDelay: 6 + (custom % 5),
+    },
+  }),
+};
+
+// Fog blob: slow sideways drift with fade in/out
+export const fogBlob: Variants = {
+  hidden: { opacity: 0 },
+  visible: (custom: number = 0) => ({
+    x: ["-8%", "8%", "-8%"],
+    opacity: [0, 0.45, 0],
+    transition: {
+      duration: 12 + (custom % 8),
+      ease: "easeInOut",
+      repeat: Infinity,
+      delay: custom,
+    },
+  }),
+};
+
+// Gradient layer fade for slow color cycling (each layer will use a slightly offset seed)
+export const gradientFade: Variants = {
+  hidden: { opacity: 0 },
+  visible: (custom: number = 0) => ({
+    opacity: [0, 1, 0],
+    transition: {
+      duration: 90,
+      ease: "easeInOut",
+      repeat: Infinity,
+      delay: custom,
+    },
+  }),
 };
