@@ -5,12 +5,10 @@ import {
   sunOverlay,
   fogOverlay,
   rainOverlay,
-  starTwinkle,
   lightningFlash,
   fogBlob,
 } from "./animations/motion";
 
-// shadeColor helper removed — no longer needed after cloud removal.
 
 type WeatherKind =
   | "clear"
@@ -24,45 +22,27 @@ type WeatherKind =
 
 type Props = {
   kind?: WeatherKind | string | null;
-  // if provided, forces the displayed hour (0-23) so external controls can preview times
   forcedHour?: number | null;
 };
 
-// Cloud graphics and their animated layers were intentionally removed.
-// Previously a CloudSVG component and three parallax motion layers rendered
-// animated clouds. This file now omits that markup so no clouds or cloud
-// animations are present in the background.
-
 export default function Background({ kind, forcedHour }: Props) {
-  // useId() is fine for client; we avoid deriving visuals from it on server.
   const uid = useId();
-  // Determine theme classes and overlays
   const isRainy = /rain|drizzle|storm/.test(String(kind || ""));
   const isFog = /fog/.test(String(kind || ""));
 
-  // To avoid hydration mismatches, make the server-rendered output deterministic.
-  // Move all uses of Date.now()/new Date() and Math.random() to client-only effects
-  // and provide stable defaults for the initial render.
-
   // Determine time of day helper and initial value
   const getTimeOfDay = (hour: number): "day" | "dusk" | "night" => {
-    // dusk extended to last until 19:00 (hour < 19)
     if (hour >= 19 || hour < 6) return "night";
     if (hour >= 16 && hour < 19) return "dusk";
     return "day";
   };
 
-  // Make initialHour deterministic for SSR: if forcedHour is provided use it,
-  // otherwise default to 12 (no access to `window`/Date during server render).
   const initialHour = typeof forcedHour === "number" ? forcedHour : 12;
 
   const [timeOfDay, setTimeOfDay] = useState<"day" | "dusk" | "night">(
     getTimeOfDay(initialHour)
   );
 
-  // Format the displayed time for the top-right badge including seconds.
-  // If `forcedHour` is provided we show the forced hour with minutes/seconds set to :00:00
-  // (useful for previews). Otherwise show the actual current time with seconds.
   const getDisplayTimeString = (now?: Date) => {
     if (typeof forcedHour === "number" && forcedHour >= 0 && forcedHour < 24) {
       const h = forcedHour % 24;
@@ -70,8 +50,6 @@ export default function Background({ kind, forcedHour }: Props) {
       return `${hour12}:00:00`;
     }
 
-    // Avoid calling `new Date()` during SSR. If not mounted, return a stable
-    // placeholder matching the server-rendered initialHour so hydration matches.
     if (!mounted) {
       const h = initialHour % 24;
       const hour12 = h % 12 === 0 ? 12 : h % 12;
@@ -91,15 +69,11 @@ export default function Background({ kind, forcedHour }: Props) {
   const getTimeOfDayLabel = () =>
     timeOfDay.charAt(0).toUpperCase() + timeOfDay.slice(1);
 
-  // Cloud animation refs removed — no cloud layers will be rendered.
-
   const [mounted, setMounted] = useState(false);
 
-  // starfield + shooting stars state
   const [stars, setStars] = useState<
     Array<{ x: number; y: number; r: number; seed: number }>
   >([]);
-  // single shooting star definition (only one active at a time)
   const [shootingDef, setShootingDef] = useState<{
     left: string;
     top: string;
@@ -110,7 +84,6 @@ export default function Background({ kind, forcedHour }: Props) {
   const shootTimerRef = useRef<number | null>(null);
   const activeTimeoutRef = useRef<number | null>(null);
 
-  // On first client mount, compute real hour and randomized animation values
   useEffect(() => {
     const updateTime = () => {
       const realHour = new Date().getHours();
@@ -121,13 +94,10 @@ export default function Background({ kind, forcedHour }: Props) {
       setTimeOfDay(getTimeOfDay(hour));
     };
 
-    // run immediately
     updateTime();
 
-    // re-check every second so the badge can show live seconds
     const id = setInterval(updateTime, 1000);
 
-    // generate a modest starfield (rendered only at night)
     setStars(
       Array.from({ length: 72 }).map(() => ({
         x: Math.floor(Math.random() * 100),
@@ -168,8 +138,6 @@ export default function Background({ kind, forcedHour }: Props) {
     };
   }, [forcedHour]);
 
-  // Cloud animation objects and cloud color variables removed.
-
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
       {mounted && (
@@ -207,9 +175,12 @@ export default function Background({ kind, forcedHour }: Props) {
                 />
               )}
               {timeOfDay === "night" && (
-                <svg
+                <motion.svg
                   className="absolute inset-0 w-full h-full pointer-events-none"
                   preserveAspectRatio="none"
+                  initial={{ x: ['-20vw'] }}
+                  animate={{ x: ['-20vw', '120vw'] }}
+                  transition={{ duration: 80, repeat: Infinity, ease: 'linear' }}
                 >
                   {stars.map((s, i) => (
                     <motion.circle
@@ -219,18 +190,20 @@ export default function Background({ kind, forcedHour }: Props) {
                       r={s.r}
                       fill="white"
                       animate={{
-                        opacity: [0.2, 1, 0.2],
+                        opacity: [0.3, 1, 0.3],
                         scale: [1, 1.4, 1],
+                        x: [0, 0.6, -0.6, 0],
+                        y: [0, -0.6, 0.6, 0],
                       }}
                       transition={{
-                        duration: 2 + (s.seed % 2),
+                        duration: 3 + (s.seed % 2),
                         repeat: Infinity,
                         repeatType: "mirror",
                         delay: s.seed * 3,
                       }}
                     />
                   ))}
-                </svg>
+                </motion.svg>
               )}
             </AnimatePresence>
           </div>
@@ -247,10 +220,10 @@ export default function Background({ kind, forcedHour }: Props) {
         </div>
       </div>
 
-      {/* Shooting star with leading glowing head */}
-      {/* Shooting star with glowing head that leads the trail */}
+    
       {mounted &&
         shootingDef &&
+        timeOfDay !== "dusk" &&
         (() => {
           const sdef = shootingDef;
           const pathId = `shootPath-${uid}`;
@@ -322,7 +295,6 @@ export default function Background({ kind, forcedHour }: Props) {
                 />
               </path>
 
-              {/* Star head (glowing dot) */}
               <circle r={4} fill="white" filter={`url(#${glowId})`}>
                 <animateMotion dur={dur} begin="0s" rotate="auto">
                   <mpath href={`#${pathId}`} />
@@ -345,6 +317,72 @@ export default function Background({ kind, forcedHour }: Props) {
           animate="visible"
           custom={4}
         />
+      )}
+
+      {timeOfDay === "night" && (
+        <motion.div
+          className="absolute top-12 left-12 pointer-events-none"
+          initial={{ x: ['-20vw'] }}
+          animate={{
+            // horizontal pan across the viewport + subtle local bobbing
+            x: ['-20vw', '120vw'],
+            translateX: [0, 0],
+            y: [0, -2, 2, 0],
+            rotate: [0, 0.15, -0.15, 0],
+          }}
+          transition={{
+            // long duration for the pan, repeat forever
+            x: { duration: 90, repeat: Infinity, ease: 'linear' },
+            y: { duration: 8, repeat: Infinity, ease: 'easeInOut' },
+            rotate: { duration: 8, repeat: Infinity, ease: 'easeInOut' },
+          }}
+        >
+          <svg
+            width="120"
+            height="120"
+            viewBox="0 0 120 120"
+            fill="none"
+            aria-hidden
+            className="filter drop-shadow-[0_0_12px_rgba(255,255,220,0.12)]"
+          >
+            <defs>
+              <radialGradient id={`moonGrad-${uid}`} cx="50%" cy="40%">
+                <stop offset="0%" stopColor="#fffef6" stopOpacity="1" />
+                <stop offset="60%" stopColor="#fff8d9" stopOpacity="0.9" />
+                <stop offset="100%" stopColor="#fff0b8" stopOpacity="0.46" />
+              </radialGradient>
+              <filter
+                id={`moonGlow-${uid}`}
+                x="-50%"
+                y="-50%"
+                width="200%"
+                height="200%"
+              >
+                <feGaussianBlur stdDeviation="6" result="b" />
+                <feMerge>
+                  <feMergeNode in="b" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+
+            <motion.circle
+              cx="60"
+              cy="50"
+              r="26"
+              fill={`url(#moonGrad-${uid})`}
+              filter={`url(#moonGlow-${uid})`}
+              animate={{ scale: [1, 1.04, 1], opacity: [0.95, 1, 0.95] }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                repeatType: "mirror",
+              }}
+            />
+
+            <circle cx="68" cy="46" r="22" fill="#0b1220" opacity="0.06" />
+          </svg>
+        </motion.div>
       )}
 
       {isFog && (
