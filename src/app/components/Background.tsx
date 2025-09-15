@@ -140,13 +140,13 @@ export default function Background({ kind, forcedHour }: Props) {
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      {mounted && (
+      {/* {mounted && (
         <div className="pointer-events-none fixed right-3 top-3 z-50 text-xs text-white/90 bg-black/40 px-2 py-1 rounded-md backdrop-blur-sm">
           <span>
             Time: {getDisplayTimeString()} ({getTimeOfDayLabel()})
           </span>
         </div>
-      )}
+      )} */}
 
       {/* background gradients */}
       <div className="absolute inset-0 transition-colors duration-700 ease-in-out">
@@ -321,6 +321,9 @@ export default function Background({ kind, forcedHour }: Props) {
             aria-hidden
             overflow="visible"
             style={{ overflow: "visible" }}
+            initial={{ x: "0%" }}
+            animate={{ x: ["0%", "22%", "0%"] }}
+            transition={{ duration: 240, repeat: Infinity, ease: "linear" }}
           >
             {/* radial gradient halo (vector) to avoid rasterized square artifacts */}
             <defs>
