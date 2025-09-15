@@ -57,6 +57,35 @@
     transform: translateX(100%);
   }
 }
+.progress-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: translateX(-100%);
+  animation: shimmer 1.6s linear infinite;
+  border-radius: 9999px;
+}
+
+.progress-marker-move {
+  animation: progressMarker 1.2s linear infinite;
+}
+
+@keyframes progressMarker {
+  0% {
+    transform: translateX(-6px) scaleX(1);
+  }
+  50% {
+    transform: translateX(6px) scaleX(1.05);
+  }
+  100% {
+    transform: translateX(-6px) scaleX(1);
+  }
+}
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
   height: 8px;

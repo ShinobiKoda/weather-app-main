@@ -359,8 +359,8 @@ export function HomePage() {
 
         <div className="mt-12 lg:mt-16">
           {/* Time slider & progress bar (preview last 12h -> next 12h) */}
-          <div className="max-w-[900px] mx-auto mb-6 px-4">
-            <label className="text-sm text-neutral-200 mb-2 block">
+          <div className="max-w-[420px] mx-auto mb-6 px-4">
+            <label className="text-sm text-neutral-300 mb-2 block">
               Preview time of day
             </label>
             <input
@@ -399,14 +399,52 @@ export function HomePage() {
                 );
               }}
               className="w-full"
+              aria-label="Preview time slider"
             />
-            <div className="w-full h-2 bg-white/10 rounded-full mt-2 relative overflow-hidden">
-              {/* progress fill: map -12..+12 to 0..100% where 0 => -12h, 50% => now, 100% => +12h */}
-              <div
-                className="absolute left-0 top-0 bottom-0 bg-white/40"
-                style={{ width: `${((previewOffset + 12) / 24) * 100}%` }}
-              />
-              <div className="absolute top-0 bottom-0 left-1/2 w-[2px] bg-white/60" />
+
+            {/* labels + bar */}
+            <div className="mt-3 flex items-center gap-4">
+              {/* left label: current time (or previewed now if dragging) */}
+              <div className="text-xs text-neutral-300 w-28 text-left">
+                {(() => {
+                  const now = new Date();
+                  const previewHour =
+                    (now.getHours() + previewOffset + 24) % 24;
+                  const hour12 = previewHour % 12 === 0 ? 12 : previewHour % 12;
+                  return `${hour12}:00`;
+                })()}
+              </div>
+
+              <div className="relative flex-1">
+                <div className="relative overflow-hidden w-full h-2 bg-white/6 rounded-full shadow-sm">
+                  {/* progress fill */}
+                  <div
+                    className="absolute left-0 top-0 bottom-0 rounded-full bg-gradient-to-r from-blue-400 via-blue-500 to-indigo-600 transition-all duration-300 ease-in-out"
+                    style={{ width: `${((previewOffset + 12) / 24) * 100}%` }}
+                  >
+                    <div className="progress-shimmer" />
+                  </div>
+
+                  {/* center marker */}
+                  <div
+                    className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-3 w-0.5 bg-white/40 rounded ${
+                      isDraggingTime ? "progress-marker-move" : ""
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {/* right label: +6 hours from now (adjusted by previewOffset) */}
+              <div className="text-xs text-neutral-300 w-28 text-right">
+                {(() => {
+                  const now = new Date();
+                  const previewHour =
+                    (now.getHours() + previewOffset + 24) % 24;
+                  const plus6 = (previewHour + 6) % 24;
+                  const hour12 = plus6 % 12 === 0 ? 12 : plus6 % 12;
+                  return `${hour12}:00`;
+                })()}
+              </div>
             </div>
           </div>
           <motion.div

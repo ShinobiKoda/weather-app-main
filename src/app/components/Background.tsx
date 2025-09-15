@@ -42,32 +42,6 @@ export default function Background({ kind, forcedHour }: Props) {
     getTimeOfDay(initialHour)
   );
 
-  const getDisplayTimeString = (now?: Date) => {
-    if (typeof forcedHour === "number" && forcedHour >= 0 && forcedHour < 24) {
-      const h = forcedHour % 24;
-      const hour12 = h % 12 === 0 ? 12 : h % 12;
-      return `${hour12}:00:00`;
-    }
-
-    if (!mounted) {
-      const h = initialHour % 24;
-      const hour12 = h % 12 === 0 ? 12 : h % 12;
-      return `${hour12}:00:00`;
-    }
-
-    const t = now ?? new Date();
-    const h = t.getHours();
-    const m = t.getMinutes();
-    const s = t.getSeconds();
-    const hour12 = h % 12 === 0 ? 12 : h % 12;
-    const min = String(m).padStart(2, "0");
-    const sec = String(s).padStart(2, "0");
-    return `${hour12}:${min}:${sec}`;
-  };
-
-  const getTimeOfDayLabel = () =>
-    timeOfDay.charAt(0).toUpperCase() + timeOfDay.slice(1);
-
   const [mounted, setMounted] = useState(false);
 
   const [stars, setStars] = useState<
@@ -96,7 +70,6 @@ export default function Background({ kind, forcedHour }: Props) {
     updateTime();
     const id = setInterval(updateTime, 1000);
 
-    // tiny stars across a wide sky
     setStars(
       Array.from({ length: 150 }).map(() => ({
         x: Math.floor(Math.random() * 400), // 0..400
@@ -108,7 +81,6 @@ export default function Background({ kind, forcedHour }: Props) {
 
     setMounted(true);
 
-    // schedule shooting stars
     const schedule = (minSec = 3, maxSec = 10) => {
       const delay = minSec + Math.random() * (maxSec - minSec);
       shootTimerRef.current = window.setTimeout(() => {
@@ -140,15 +112,6 @@ export default function Background({ kind, forcedHour }: Props) {
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-      {/* {mounted && (
-        <div className="pointer-events-none fixed right-3 top-3 z-50 text-xs text-white/90 bg-black/40 px-2 py-1 rounded-md backdrop-blur-sm">
-          <span>
-            Time: {getDisplayTimeString()} ({getTimeOfDayLabel()})
-          </span>
-        </div>
-      )} */}
-
-      {/* background gradients */}
       <div className="absolute inset-0 transition-colors duration-700 ease-in-out">
         <div className="w-full h-full relative">
           <div className="absolute inset-0">
