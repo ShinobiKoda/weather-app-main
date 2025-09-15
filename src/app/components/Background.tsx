@@ -9,7 +9,6 @@ import {
   fogBlob,
 } from "./animations/motion";
 
-
 type WeatherKind =
   | "clear"
   | "partly-cloudy"
@@ -30,7 +29,7 @@ export default function Background({ kind, forcedHour }: Props) {
   const isRainy = /rain|drizzle|storm/.test(String(kind || ""));
   const isFog = /fog/.test(String(kind || ""));
 
-  // Determine time of day helper and initial value
+  // Determine time of day helper
   const getTimeOfDay = (hour: number): "day" | "dusk" | "night" => {
     if (hour >= 19 || hour < 6) return "night";
     if (hour >= 16 && hour < 19) return "dusk";
@@ -95,20 +94,21 @@ export default function Background({ kind, forcedHour }: Props) {
     };
 
     updateTime();
-
     const id = setInterval(updateTime, 1000);
 
+    // tiny stars across a wide sky
     setStars(
-      Array.from({ length: 72 }).map(() => ({
-        x: Math.floor(Math.random() * 100),
+      Array.from({ length: 150 }).map(() => ({
+        x: Math.floor(Math.random() * 400), // 0..400
         y: Math.floor(Math.random() * 100),
-        r: Math.random() * 1.2 + 0.6,
+        r: Math.random() * 0.2 + 0.05, // tiny dots
         seed: Math.random(),
       }))
     );
 
     setMounted(true);
 
+    // schedule shooting stars
     const schedule = (minSec = 3, maxSec = 10) => {
       const delay = minSec + Math.random() * (maxSec - minSec);
       shootTimerRef.current = window.setTimeout(() => {
@@ -147,10 +147,9 @@ export default function Background({ kind, forcedHour }: Props) {
           </span>
         </div>
       )}
-      <div
-        className={`absolute inset-0 transition-colors duration-700 ease-in-out `}
-        aria-hidden
-      >
+
+      {/* background gradients */}
+      <div className="absolute inset-0 transition-colors duration-700 ease-in-out">
         <div className="w-full h-full relative">
           <div className="absolute inset-0">
             <AnimatePresence mode="wait">
@@ -176,30 +175,30 @@ export default function Background({ kind, forcedHour }: Props) {
               )}
               {timeOfDay === "night" && (
                 <motion.svg
-                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  className="absolute inset-0 w-full h-full pointer-events-none z-0"
                   preserveAspectRatio="none"
-                  initial={{ x: ['-20vw'] }}
-                  animate={{ x: ['-20vw', '120vw'] }}
-                  transition={{ duration: 80, repeat: Infinity, ease: 'linear' }}
+                  viewBox="0 0 400 100"
+                  initial={{ x: 0 }}
+                  animate={{ x: ["0vw", "-100vw"] }}
+                  transition={{
+                    duration: 120,
+                    repeat: Infinity,
+                    ease: "linear",
+                  }}
                 >
                   {stars.map((s, i) => (
                     <motion.circle
                       key={`star-${i}`}
-                      cx={`${s.x}%`}
-                      cy={`${s.y}%`}
+                      cx={s.x}
+                      cy={s.y}
                       r={s.r}
                       fill="white"
-                      animate={{
-                        opacity: [0.3, 1, 0.3],
-                        scale: [1, 1.4, 1],
-                        x: [0, 0.6, -0.6, 0],
-                        y: [0, -0.6, 0.6, 0],
-                      }}
+                      animate={{ opacity: [0.2, 1, 0.2] }}
                       transition={{
                         duration: 3 + (s.seed % 2),
                         repeat: Infinity,
                         repeatType: "mirror",
-                        delay: s.seed * 3,
+                        delay: s.seed * 2,
                       }}
                     />
                   ))}
@@ -208,6 +207,7 @@ export default function Background({ kind, forcedHour }: Props) {
             </AnimatePresence>
           </div>
 
+          {/* dark overlay at dusk/night */}
           <div
             className={`absolute inset-0 pointer-events-none transition-opacity duration-700 ease-in-out ${
               timeOfDay === "day"
@@ -220,7 +220,7 @@ export default function Background({ kind, forcedHour }: Props) {
         </div>
       </div>
 
-    
+      {/* shooting stars */}
       {mounted &&
         shootingDef &&
         timeOfDay !== "dusk" &&
@@ -245,13 +245,10 @@ export default function Background({ kind, forcedHour }: Props) {
               aria-hidden
             >
               <defs>
-                {/* Trail gradient: bright near the star, fading out */}
                 <linearGradient id={trailId} x1="0" x2="1">
                   <stop offset="0%" stopColor="white" stopOpacity="0.8" />
                   <stop offset="80%" stopColor="white" stopOpacity="0" />
                 </linearGradient>
-
-                {/* Glow filter for soft edges */}
                 <filter
                   id={glowId}
                   x="-100%"
@@ -267,7 +264,6 @@ export default function Background({ kind, forcedHour }: Props) {
                 </filter>
               </defs>
 
-              {/* Trail line */}
               <path
                 id={pathId}
                 d={d}
@@ -295,12 +291,7 @@ export default function Background({ kind, forcedHour }: Props) {
                 />
               </path>
 
-              <circle r={4} fill="white" filter={`url(#${glowId})`}>
-                <animateMotion dur={dur} begin="0s" rotate="auto">
-                  <mpath href={`#${pathId}`} />
-                </animateMotion>
-              </circle>
-              <circle r={2} fill="white">
+              <circle r={3} fill="white" filter={`url(#${glowId})`}>
                 <animateMotion dur={dur} begin="0s" rotate="auto">
                   <mpath href={`#${pathId}`} />
                 </animateMotion>
@@ -309,6 +300,7 @@ export default function Background({ kind, forcedHour }: Props) {
           );
         })()}
 
+      {/* storm flash */}
       {kind === "storm" && (
         <motion.div
           className="absolute inset-0 bg-white/40 pointer-events-none"
@@ -319,72 +311,125 @@ export default function Background({ kind, forcedHour }: Props) {
         />
       )}
 
+      {/* moon */}
       {timeOfDay === "night" && (
-        <motion.div
-          className="absolute top-12 left-12 pointer-events-none"
-          initial={{ x: ['-20vw'] }}
-          animate={{
-            // horizontal pan across the viewport + subtle local bobbing
-            x: ['-20vw', '120vw'],
-            translateX: [0, 0],
-            y: [0, -2, 2, 0],
-            rotate: [0, 0.15, -0.15, 0],
-          }}
-          transition={{
-            // long duration for the pan, repeat forever
-            x: { duration: 90, repeat: Infinity, ease: 'linear' },
-            y: { duration: 8, repeat: Infinity, ease: 'easeInOut' },
-            rotate: { duration: 8, repeat: Infinity, ease: 'easeInOut' },
-          }}
-        >
-          <svg
-            width="120"
-            height="120"
-            viewBox="0 0 120 120"
-            fill="none"
+        <>
+          {/* moon: render inside an SVG so <circle> is valid and give it a higher z so it stays above star layers */}
+          <motion.svg
+            className="absolute left-8 top-6 w-36 h-36 pointer-events-none z-10"
+            viewBox="0 0 100 100"
             aria-hidden
-            className="filter drop-shadow-[0_0_12px_rgba(255,255,220,0.12)]"
+            overflow="visible"
+            style={{ overflow: "visible" }}
           >
+            {/* radial gradient halo (vector) to avoid rasterized square artifacts */}
             <defs>
-              <radialGradient id={`moonGrad-${uid}`} cx="50%" cy="40%">
-                <stop offset="0%" stopColor="#fffef6" stopOpacity="1" />
-                <stop offset="60%" stopColor="#fff8d9" stopOpacity="0.9" />
-                <stop offset="100%" stopColor="#fff0b8" stopOpacity="0.46" />
+              <radialGradient id={`moonGrad-${uid}`} cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="rgba(255,244,200,0.95)" />
+                <stop offset="35%" stopColor="rgba(255,244,200,0.65)" />
+                <stop offset="60%" stopColor="rgba(255,244,200,0.28)" />
+                <stop offset="100%" stopColor="rgba(255,244,200,0)" />
               </radialGradient>
-              <filter
-                id={`moonGlow-${uid}`}
-                x="-50%"
-                y="-50%"
-                width="200%"
-                height="200%"
-              >
-                <feGaussianBlur stdDeviation="6" result="b" />
-                <feMerge>
-                  <feMergeNode in="b" />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
             </defs>
 
+            {/* soft radial halo behind the moon (vector, no square) */}
             <motion.circle
-              cx="60"
-              cy="50"
-              r="26"
+              cx={80}
+              cy={60}
+              r={34}
               fill={`url(#moonGrad-${uid})`}
-              filter={`url(#moonGlow-${uid})`}
-              animate={{ scale: [1, 1.04, 1], opacity: [0.95, 1, 0.95] }}
+              animate={{
+                opacity: [0.95, 1, 0.95],
+                cy: [60, 58, 60],
+                r: [34, 36, 34],
+              }}
               transition={{
-                duration: 4,
+                duration: 6,
                 repeat: Infinity,
                 repeatType: "mirror",
               }}
             />
 
-            <circle cx="68" cy="46" r="22" fill="#0b1220" opacity="0.06" />
-          </svg>
-        </motion.div>
+            {/* solid moon on top */}
+            <motion.circle
+              cx={80}
+              cy={60}
+              r={20}
+              fill="white"
+              animate={{ cy: [60, 58, 60] }}
+              transition={{
+                duration: 6,
+                repeat: Infinity,
+                repeatType: "mirror",
+              }}
+            />
+          </motion.svg>
+
+          {/* First starfield */}
+          <motion.svg
+            className="absolute inset-0 w-full h-full pointer-events-none z-0"
+            preserveAspectRatio="none"
+            viewBox="0 0 400 100"
+            initial={{ x: 0 }}
+            animate={{ x: ["0%", "-100%"] }}
+            transition={{
+              duration: 120, // slow drift
+              repeat: Infinity,
+              ease: "linear",
+            }}
+          >
+            {stars.map((s, i) => (
+              <motion.circle
+                key={`star-a-${i}`}
+                cx={s.x}
+                cy={s.y}
+                r={s.r}
+                fill="white"
+                animate={{ opacity: [0.2, 1, 0.2] }}
+                transition={{
+                  duration: 2 + (s.seed % 2),
+                  repeat: Infinity,
+                  repeatType: "mirror",
+                  delay: s.seed * 3,
+                }}
+              />
+            ))}
+          </motion.svg>
+
+          {/* Second starfield, shifted right */}
+          <motion.svg
+            className="absolute inset-0 w-full h-full pointer-events-none z-0"
+            preserveAspectRatio="none"
+            viewBox="0 0 400 100"
+            initial={{ x: "100%" }}
+            animate={{ x: ["100%", "0%"] }}
+            transition={{
+              duration: 120,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+          >
+            {stars.map((s, i) => (
+              <motion.circle
+                key={`star-b-${i}`}
+                cx={s.x}
+                cy={s.y}
+                r={s.r}
+                fill="white"
+                animate={{ opacity: [0.2, 1, 0.2] }}
+                transition={{
+                  duration: 2 + (s.seed % 2),
+                  repeat: Infinity,
+                  repeatType: "mirror",
+                  delay: s.seed * 3,
+                }}
+              />
+            ))}
+          </motion.svg>
+        </>
       )}
 
+      {/* fog */}
       {isFog && (
         <div className="absolute inset-0 pointer-events-none">
           {[0, 1, 2].map((i) => (
@@ -406,6 +451,7 @@ export default function Background({ kind, forcedHour }: Props) {
         </div>
       )}
 
+      {/* rain */}
       {isRainy && (
         <div className="absolute inset-0 pointer-events-none">
           {[0, 1, 2, 3, 4].map((n) => (
@@ -431,6 +477,7 @@ export default function Background({ kind, forcedHour }: Props) {
         </div>
       )}
 
+      {/* overlays */}
       {!isRainy && !isFog && (
         <motion.div
           className="absolute inset-0 pointer-events-none"
@@ -440,7 +487,6 @@ export default function Background({ kind, forcedHour }: Props) {
           aria-hidden
         />
       )}
-
       {isFog && (
         <motion.div
           className="absolute inset-0 bg-white/6 backdrop-blur-sm pointer-events-none"
@@ -450,7 +496,6 @@ export default function Background({ kind, forcedHour }: Props) {
           aria-hidden
         />
       )}
-
       {isRainy && (
         <motion.div
           className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-black/5 to-black/10"
