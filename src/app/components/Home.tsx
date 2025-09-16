@@ -22,17 +22,14 @@ import { formatLongDate as defaultFormatLongDate } from "./utils";
 import Background from "./Background";
 import { APIError } from "./APIError";
 
-// Minimal mapping from Open-Meteo weather codes to simple kinds
 function deriveWeatherKind(weather: WeatherPayload | null | undefined): string {
   if (!weather) return "clear";
-  // Try to safely extract a weather code from the payload without using `any`
   const w = weather as unknown;
   if (typeof w !== "object" || w === null) return "clear";
   const wObj = w as Record<string, unknown>;
 
   let codeValue: number | string | null = null;
 
-  // current_weather?.weathercode
   if ("current_weather" in wObj) {
     const cw = wObj.current_weather as Record<string, unknown> | undefined;
     if (cw && "weathercode" in cw) {
@@ -41,7 +38,6 @@ function deriveWeatherKind(weather: WeatherPayload | null | undefined): string {
     }
   }
 
-  // fallback: hourly.weathercode[0]
   if (codeValue == null && "hourly" in wObj) {
     const hourly = wObj.hourly as Record<string, unknown> | undefined;
     if (hourly && "weathercode" in hourly) {
@@ -56,7 +52,6 @@ function deriveWeatherKind(weather: WeatherPayload | null | undefined): string {
 
   if (codeValue == null) return "clear";
   const c = Number(codeValue);
-  // 0 clear, 1-3 partly/cloudy, 45-48 fog, 51-67 drizzle/rain, 71-77 snow, 80-82 rain, 95-99 storm
   if (c === 0) return "clear";
   if (c >= 1 && c <= 3) return "partly-cloudy";
   if (c >= 45 && c <= 48) return "fog";
@@ -408,7 +403,6 @@ export function HomePage() {
           </motion.h1>
 
           <div className="mt-12 lg:mt-16">
-            {/* Time slider & progress bar (preview last 12h -> next 12h) */}
             <div className="max-w-[420px] mx-auto mb-6 px-4">
               <label className="text-sm text-neutral-300 mb-2 block">
                 Preview time of day
@@ -451,52 +445,6 @@ export function HomePage() {
                 className="w-full"
                 aria-label="Preview time slider"
               />
-
-              {/* labels + bar */}
-              <div className="mt-3 flex items-center gap-4">
-                {/* left label: current time (or previewed now if dragging) */}
-                <div className="text-xs text-neutral-300 w-28 text-left">
-                  {(() => {
-                    const now = new Date();
-                    const previewHour =
-                      (now.getHours() + previewOffset + 24) % 24;
-                    const hour12 =
-                      previewHour % 12 === 0 ? 12 : previewHour % 12;
-                    return `${hour12}:00`;
-                  })()}
-                </div>
-
-                <div className="relative flex-1">
-                  <div className="relative overflow-hidden w-full h-2 bg-white/6 rounded-full shadow-sm">
-                    {/* progress fill */}
-                    <div
-                      className="absolute left-0 top-0 bottom-0 rounded-full bg-gradient-to-r from-blue-400 via-blue-500 to-indigo-600 transition-all duration-300 ease-in-out"
-                      style={{ width: `${((previewOffset + 12) / 24) * 100}%` }}
-                    >
-                      <div className="progress-shimmer" />
-                    </div>
-
-                    {/* center marker */}
-                    <div
-                      className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-3 w-0.5 bg-white/40 rounded ${
-                        isDraggingTime ? "progress-marker-move" : ""
-                      }`}
-                    />
-                  </div>
-                </div>
-
-                {/* right label: +6 hours from now (adjusted by previewOffset) */}
-                <div className="text-xs text-neutral-300 w-28 text-right">
-                  {(() => {
-                    const now = new Date();
-                    const previewHour =
-                      (now.getHours() + previewOffset + 24) % 24;
-                    const plus6 = (previewHour + 6) % 24;
-                    const hour12 = plus6 % 12 === 0 ? 12 : plus6 % 12;
-                    return `${hour12}:00`;
-                  })()}
-                </div>
-              </div>
             </div>
             <motion.div
               className="flex flex-col lg:flex-row lg:items-center gap-4 lg:justify-center max-w-[1024px] mx-auto md:grid md:grid-cols-[3fr_1fr] lg:hidden items-center"
