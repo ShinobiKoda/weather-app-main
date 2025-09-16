@@ -20,6 +20,7 @@ import DailyForecast from "./DailyForecast";
 import HourlyForecast from "./HourlyForecast";
 import { formatLongDate as defaultFormatLongDate } from "./utils";
 import Background from "./Background";
+import { APIError } from "./APIError";
 
 // Minimal mapping from Open-Meteo weather codes to simple kinds
 function deriveWeatherKind(weather: WeatherPayload | null | undefined): string {
@@ -71,13 +72,13 @@ const bricolage_grotesque = Bricolage_Grotesque({
   weight: ["300", "500", "600", "700"],
 });
 
-// Titles to cycle in the typewriter
 const titles = ["How's the sky looking today?", "Have a nice day!"];
 
 export function HomePage() {
   const [dayOpen, setDayOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
   const [weather, setWeather] = useState<WeatherPayload | null>(null);
   const [location, setLocation] = useState<string>("");
   const [suggestions, setSuggestions] = useState<
@@ -164,7 +165,8 @@ export function HomePage() {
   useEffect(() => {
     let mounted = true;
 
-    (async () => {
+    async function loadInitial() {
+      setApiError(null);
       setLoading(true);
       try {
         const loc = await fetchUserLocation();
@@ -186,11 +188,18 @@ export function HomePage() {
         else setLocation(`Lat: ${loc.latitude}, Lon: ${loc.longitude}`);
       } catch (e) {
         console.error("Error fetching user location / weather:", e);
-        if (mounted) setLocation("Unknown location");
+        if (mounted) {
+          setLocation("Unknown location");
+          setApiError(
+            "Failed to fetch location or weather. Please check your network and try again."
+          );
+        }
       } finally {
         if (mounted) setLoading(false);
       }
-    })();
+    }
+
+    loadInitial();
 
     return () => {
       mounted = false;
@@ -201,6 +210,7 @@ export function HomePage() {
     if (!query) return;
     setSuggestions([]);
     setLoading(true);
+    setApiError(null);
     try {
       const geoRes = await fetch(
         `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
@@ -219,6 +229,7 @@ export function HomePage() {
           : null;
       if (!first) {
         setWeather(null);
+        setApiError("No results found for that search.");
         return;
       }
       const lat = Number(first.latitude);
@@ -233,6 +244,7 @@ export function HomePage() {
       } catch {}
     } catch (e) {
       console.error(e);
+      setApiError("Search failed due to a network or API error.");
     } finally {
       setLoading(false);
     }
@@ -305,14 +317,46 @@ export function HomePage() {
     setQuery("");
     setSuggestions([]);
     setLoading(true);
+    setApiError(null);
     try {
       const data = await fetchWeather(item.latitude, item.longitude);
       setWeather(data);
     } catch (error) {
       console.error(error);
+      setApiError("Failed to fetch weather for the selected location.");
     } finally {
       setLoading(false);
     }
+  }
+
+  function retryInitialFetch() {
+    // simply re-run the initial effect logic by calling a small helper
+    // We'll attempt to refetch user's location and weather.
+    (async () => {
+      setApiError(null);
+      setLoading(true);
+      try {
+        const loc = await fetchUserLocation();
+        if (!loc) {
+          setLocation("Unknown location");
+          setWeather(null);
+          return;
+        }
+        const data = await fetchWeather(loc.latitude, loc.longitude);
+        setWeather(data);
+        if (loc.city && loc.country) setLocation(`${loc.city}, ${loc.country}`);
+        else if (loc.city && loc.region)
+          setLocation(`${loc.city}, ${loc.region}`);
+        else setLocation(`Lat: ${loc.latitude}, Lon: ${loc.longitude}`);
+      } catch (e) {
+        console.error(e);
+        setApiError(
+          "Failed to fetch location or weather. Please check your network and try again."
+        );
+      } finally {
+        setLoading(false);
+      }
+    })();
   }
 
   return (
@@ -338,222 +382,230 @@ export function HomePage() {
         windUnit={windUnit}
         setWindUnit={setWindUnit}
       />
-      <div className="w-full px-4 max-w-[1440px] mx-auto md:px-8 lg:px-12">
-        <motion.h1
-          className={` ${bricolage_grotesque.className} text-center text-[52px] lg:text-7xl font-bold mt-12`}
-          variants={fadeInUp}
-        >
-          {typedTitle}
-          {showCaret && (
-            <motion.span
-              aria-hidden="true"
-              className="inline-block ml-1 align-middle"
-              variants={caretBlink}
-              initial="hidden"
-              animate="visible"
-            >
-              |
-            </motion.span>
-          )}
-        </motion.h1>
 
-        <div className="mt-12 lg:mt-16">
-          {/* Time slider & progress bar (preview last 12h -> next 12h) */}
-          <div className="max-w-[420px] mx-auto mb-6 px-4">
-            <label className="text-sm text-neutral-300 mb-2 block">
-              Preview time of day
-            </label>
-            <input
-              type="range"
-              min={-12}
-              max={12}
-              step={1}
-              value={previewOffset}
-              onChange={(e) => {
-                const v = Number(e.target.value);
-                setPreviewOffset(v);
-              }}
-              onMouseDown={() => {
-                if (releaseTimeout.current)
-                  window.clearTimeout(releaseTimeout.current);
-                setIsDraggingTime(true);
-              }}
-              onTouchStart={() => {
-                if (releaseTimeout.current)
-                  window.clearTimeout(releaseTimeout.current);
-                setIsDraggingTime(true);
-              }}
-              onMouseUp={() => {
-                setIsDraggingTime(false);
-                // animate return to now after 600ms
-                releaseTimeout.current = window.setTimeout(
-                  () => setPreviewOffset(0),
-                  600
-                );
-              }}
-              onTouchEnd={() => {
-                setIsDraggingTime(false);
-                releaseTimeout.current = window.setTimeout(
-                  () => setPreviewOffset(0),
-                  600
-                );
-              }}
-              className="w-full"
-              aria-label="Preview time slider"
-            />
-
-            {/* labels + bar */}
-            <div className="mt-3 flex items-center gap-4">
-              {/* left label: current time (or previewed now if dragging) */}
-              <div className="text-xs text-neutral-300 w-28 text-left">
-                {(() => {
-                  const now = new Date();
-                  const previewHour =
-                    (now.getHours() + previewOffset + 24) % 24;
-                  const hour12 = previewHour % 12 === 0 ? 12 : previewHour % 12;
-                  return `${hour12}:00`;
-                })()}
-              </div>
-
-              <div className="relative flex-1">
-                <div className="relative overflow-hidden w-full h-2 bg-white/6 rounded-full shadow-sm">
-                  {/* progress fill */}
-                  <div
-                    className="absolute left-0 top-0 bottom-0 rounded-full bg-gradient-to-r from-blue-400 via-blue-500 to-indigo-600 transition-all duration-300 ease-in-out"
-                    style={{ width: `${((previewOffset + 12) / 24) * 100}%` }}
-                  >
-                    <div className="progress-shimmer" />
-                  </div>
-
-                  {/* center marker */}
-                  <div
-                    className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-3 w-0.5 bg-white/40 rounded ${
-                      isDraggingTime ? "progress-marker-move" : ""
-                    }`}
-                  />
-                </div>
-              </div>
-
-              {/* right label: +6 hours from now (adjusted by previewOffset) */}
-              <div className="text-xs text-neutral-300 w-28 text-right">
-                {(() => {
-                  const now = new Date();
-                  const previewHour =
-                    (now.getHours() + previewOffset + 24) % 24;
-                  const plus6 = (previewHour + 6) % 24;
-                  const hour12 = plus6 % 12 === 0 ? 12 : plus6 % 12;
-                  return `${hour12}:00`;
-                })()}
-              </div>
-            </div>
-          </div>
-          <motion.div
-            className="flex flex-col lg:flex-row lg:items-center gap-4 lg:justify-center max-w-[1024px] mx-auto md:grid md:grid-cols-[3fr_1fr] lg:hidden items-center"
-            variants={slideInFromRight}
+      {apiError ? (
+        <div className="w-full px-4 max-w-[1440px] mx-auto md:px-8 lg:px-12 mt-8">
+          <APIError message={apiError} onRetry={retryInitialFetch} />
+        </div>
+      ) : (
+        <div className="w-full px-4 max-w-[1440px] mx-auto md:px-8 lg:px-12">
+          <motion.h1
+            className={` ${bricolage_grotesque.className} text-center text-[52px] lg:text-7xl font-bold mt-12`}
+            variants={fadeInUp}
           >
-            <SearchBar
-              query={query}
-              setQuery={setQuery}
-              handleSearch={handleSearch}
-              suggestions={suggestions}
-              suggestionLoading={suggestionLoading}
-              selectSuggestion={selectSuggestion}
-              onOpen={() => setMobileSearchOpen(true)}
-            />
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="p-4 rounded-xl bg-blue-500 w-full lg:w-34 text-xl font-medium"
-              onClick={() => setMobileSearchOpen(true)}
-            >
-              Search
-            </motion.button>
-          </motion.div>
+            {typedTitle}
+            {showCaret && (
+              <motion.span
+                aria-hidden="true"
+                className="inline-block ml-1 align-middle"
+                variants={caretBlink}
+                initial="hidden"
+                animate="visible"
+              >
+                |
+              </motion.span>
+            )}
+          </motion.h1>
 
-          {/* Mobile overlay for search */}
-          {mobileSearchOpen && (
-            <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-6 lg:hidden">
-              <div className="w-full max-w-md">
-                <SearchBar
-                  query={query}
-                  setQuery={setQuery}
-                  handleSearch={handleSearch}
-                  suggestions={suggestions}
-                  suggestionLoading={suggestionLoading}
-                  selectSuggestion={selectSuggestion}
-                  onClose={() => setMobileSearchOpen(false)}
-                  autoFocus={mobileSearchOpen}
-                  closeOnOutsideClick={true}
-                />
-              </div>
-            </div>
-          )}
+          <div className="mt-12 lg:mt-16">
+            {/* Time slider & progress bar (preview last 12h -> next 12h) */}
+            <div className="max-w-[420px] mx-auto mb-6 px-4">
+              <label className="text-sm text-neutral-300 mb-2 block">
+                Preview time of day
+              </label>
+              <input
+                type="range"
+                min={-12}
+                max={12}
+                step={1}
+                value={previewOffset}
+                onChange={(e) => {
+                  const v = Number(e.target.value);
+                  setPreviewOffset(v);
+                }}
+                onMouseDown={() => {
+                  if (releaseTimeout.current)
+                    window.clearTimeout(releaseTimeout.current);
+                  setIsDraggingTime(true);
+                }}
+                onTouchStart={() => {
+                  if (releaseTimeout.current)
+                    window.clearTimeout(releaseTimeout.current);
+                  setIsDraggingTime(true);
+                }}
+                onMouseUp={() => {
+                  setIsDraggingTime(false);
+                  // animate return to now after 600ms
+                  releaseTimeout.current = window.setTimeout(
+                    () => setPreviewOffset(0),
+                    600
+                  );
+                }}
+                onTouchEnd={() => {
+                  setIsDraggingTime(false);
+                  releaseTimeout.current = window.setTimeout(
+                    () => setPreviewOffset(0),
+                    600
+                  );
+                }}
+                className="w-full"
+                aria-label="Preview time slider"
+              />
 
-          <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 min-h-[700px]">
-            <div className="mt-8 flex flex-col">
-              <div className="w-full lg:max-w-[500px] ml-auto relative">
-                <div className="w-full flex flex-col mb-8 lg:mb-12 gap-3.5">
-                  <motion.div
-                    className="w-full items-center bg-neutral-800 rounded-xl p-4 gap-2 text-xl text-neutral-200 font-medium max-w-[500px] ml-auto hidden lg:flex"
-                    tabIndex={0}
-                    variants={slideInFromRight}
-                  >
-                    <SearchBar
-                      query={query}
-                      setQuery={setQuery}
-                      handleSearch={handleSearch}
-                      suggestions={suggestions}
-                      suggestionLoading={suggestionLoading}
-                      selectSuggestion={selectSuggestion}
+              {/* labels + bar */}
+              <div className="mt-3 flex items-center gap-4">
+                {/* left label: current time (or previewed now if dragging) */}
+                <div className="text-xs text-neutral-300 w-28 text-left">
+                  {(() => {
+                    const now = new Date();
+                    const previewHour =
+                      (now.getHours() + previewOffset + 24) % 24;
+                    const hour12 =
+                      previewHour % 12 === 0 ? 12 : previewHour % 12;
+                    return `${hour12}:00`;
+                  })()}
+                </div>
+
+                <div className="relative flex-1">
+                  <div className="relative overflow-hidden w-full h-2 bg-white/6 rounded-full shadow-sm">
+                    {/* progress fill */}
+                    <div
+                      className="absolute left-0 top-0 bottom-0 rounded-full bg-gradient-to-r from-blue-400 via-blue-500 to-indigo-600 transition-all duration-300 ease-in-out"
+                      style={{ width: `${((previewOffset + 12) / 24) * 100}%` }}
+                    >
+                      <div className="progress-shimmer" />
+                    </div>
+
+                    {/* center marker */}
+                    <div
+                      className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-3 w-0.5 bg-white/40 rounded ${
+                        isDraggingTime ? "progress-marker-move" : ""
+                      }`}
                     />
-                  </motion.div>
+                  </div>
+                </div>
+
+                {/* right label: +6 hours from now (adjusted by previewOffset) */}
+                <div className="text-xs text-neutral-300 w-28 text-right">
+                  {(() => {
+                    const now = new Date();
+                    const previewHour =
+                      (now.getHours() + previewOffset + 24) % 24;
+                    const plus6 = (previewHour + 6) % 24;
+                    const hour12 = plus6 % 12 === 0 ? 12 : plus6 % 12;
+                    return `${hour12}:00`;
+                  })()}
                 </div>
               </div>
-
-              <WeatherHero
-                weather={weather}
-                loading={loading}
-                location={location}
-                formatLongDate={defaultFormatLongDate}
-                tempUnit={tempUnit}
-              />
-
-              <StatsGrid
-                weather={weather}
-                loading={loading}
-                tempUnit={tempUnit}
-                windUnit={windUnit}
-              />
-
-              <DailyForecast
-                weather={weather}
-                loading={loading}
-                tempUnit={tempUnit}
-              />
             </div>
-
-            <div className="mt-8 flex flex-col max-h-full">
+            <motion.div
+              className="flex flex-col lg:flex-row lg:items-center gap-4 lg:justify-center max-w-[1024px] mx-auto md:grid md:grid-cols-[3fr_1fr] lg:hidden items-center"
+              variants={slideInFromRight}
+            >
+              <SearchBar
+                query={query}
+                setQuery={setQuery}
+                handleSearch={handleSearch}
+                suggestions={suggestions}
+                suggestionLoading={suggestionLoading}
+                selectSuggestion={selectSuggestion}
+                onOpen={() => setMobileSearchOpen(true)}
+              />
               <motion.button
-                className="px-4 py-3 rounded-xl bg-blue-500 w-full lg:w-34 text-lg mb-8 lg:mb-12 hidden lg:block cursor-pointer"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={handleSearch}
+                className="p-4 rounded-xl bg-blue-500 w-full lg:w-34 text-xl font-medium"
+                onClick={() => setMobileSearchOpen(true)}
               >
                 Search
               </motion.button>
+            </motion.div>
 
-              <HourlyForecast
-                weather={weather}
-                loading={loading}
-                dayOpen={dayOpen}
-                setDayOpen={setDayOpen}
-                tempUnit={tempUnit}
-                windUnit={windUnit}
-              />
+            {/* Mobile overlay for search */}
+            {mobileSearchOpen && (
+              <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-6 lg:hidden">
+                <div className="w-full max-w-md">
+                  <SearchBar
+                    query={query}
+                    setQuery={setQuery}
+                    handleSearch={handleSearch}
+                    suggestions={suggestions}
+                    suggestionLoading={suggestionLoading}
+                    selectSuggestion={selectSuggestion}
+                    onClose={() => setMobileSearchOpen(false)}
+                    autoFocus={mobileSearchOpen}
+                    closeOnOutsideClick={true}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 min-h-[700px]">
+              <div className="mt-8 flex flex-col">
+                <div className="w-full lg:max-w-[500px] ml-auto relative">
+                  <div className="w-full flex flex-col mb-8 lg:mb-12 gap-3.5">
+                    <motion.div
+                      className="w-full items-center bg-neutral-800 rounded-xl p-4 gap-2 text-xl text-neutral-200 font-medium max-w-[500px] ml-auto hidden lg:flex"
+                      tabIndex={0}
+                      variants={slideInFromRight}
+                    >
+                      <SearchBar
+                        query={query}
+                        setQuery={setQuery}
+                        handleSearch={handleSearch}
+                        suggestions={suggestions}
+                        suggestionLoading={suggestionLoading}
+                        selectSuggestion={selectSuggestion}
+                      />
+                    </motion.div>
+                  </div>
+                </div>
+
+                <WeatherHero
+                  weather={weather}
+                  loading={loading}
+                  location={location}
+                  formatLongDate={defaultFormatLongDate}
+                  tempUnit={tempUnit}
+                />
+
+                <StatsGrid
+                  weather={weather}
+                  loading={loading}
+                  tempUnit={tempUnit}
+                  windUnit={windUnit}
+                />
+
+                <DailyForecast
+                  weather={weather}
+                  loading={loading}
+                  tempUnit={tempUnit}
+                />
+              </div>
+
+              <div className="mt-8 flex flex-col max-h-full">
+                <motion.button
+                  className="px-4 py-3 rounded-xl bg-blue-500 w-full lg:w-34 text-lg mb-8 lg:mb-12 hidden lg:block cursor-pointer"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={handleSearch}
+                >
+                  Search
+                </motion.button>
+
+                <HourlyForecast
+                  weather={weather}
+                  loading={loading}
+                  dayOpen={dayOpen}
+                  setDayOpen={setDayOpen}
+                  tempUnit={tempUnit}
+                  windUnit={windUnit}
+                />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
     </motion.div>
   );
 }

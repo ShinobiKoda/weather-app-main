@@ -18,7 +18,6 @@ import {
   stormOverlay,
   fogOverlay,
   sunOverlay,
-  // rain lines
   rainDrop,
   drizzleLine,
   splatter,
@@ -76,10 +75,8 @@ function WeatherHero({
   const iconVariant = pickIconVariant(code);
   const overlayVariant = pickOverlayVariant(code);
 
-  // ✅ Create a unique key so AnimatePresence knows when data changes
   const keyId = `${location}-${weather?.current?.time ?? "loading"}`;
 
-  // Determine tint color for background: lighter for sunny, darker for rain/cloud
   function pickTint(code: number) {
     // return rgba string; alpha controls darkness
     if (code === 0 || code === 1 || code === 2 || code === 3)
@@ -93,9 +90,8 @@ function WeatherHero({
       return "rgba(10,14,22,0.55)"; // drizzle / light rain -> darker
     if ((code >= 63 && code <= 65) || (code >= 85 && code <= 86))
       return "rgba(6,10,16,0.7)"; // rain -> dark
-    if (code >= 71 && code <= 77) return "rgba(18,20,26,0.45)"; // snow -> medium dark
-    if (code >= 95 && code <= 99) return "rgba(8,8,12,0.72)"; // storm -> very dark
-    // default cloudy
+    if (code >= 71 && code <= 77) return "rgba(18,20,26,0.45)";
+    if (code >= 95 && code <= 99) return "rgba(8,8,12,0.72)";
     return "rgba(12,16,22,0.5)";
   }
 
@@ -108,18 +104,15 @@ function WeatherHero({
     (c >= 95 && c <= 99);
   const isDrizzle = (c: number) => c >= 51 && c <= 57;
 
-  // Use actual precipitation data (if available) to decide whether to show
-  // falling rain/drizzle animations. If precipitation value is available
-  // consider precipitation > 0 as "currently raining". If not available,
-  // fall back to precipitation probability >= 30% as a weaker heuristic.
   const currentPrecip = weather?.properties?.precipitation ?? null;
   const currentPrecipProb =
     weather?.properties?.precipitation_probability ?? null;
 
   const isCurrentlyRaining = (() => {
     if (!isRain(code)) return false;
+    if (currentPrecipProb !== null) return currentPrecipProb >= 90;
+
     if (currentPrecip !== null) return currentPrecip > 0;
-    if (currentPrecipProb !== null) return currentPrecipProb >= 50; // conservative
     return false;
   })();
 
@@ -130,7 +123,6 @@ function WeatherHero({
     return false;
   })();
 
-  // Generate stable randomised drops so re-renders (e.g. the typewriter) don't recreate them
   type Drop = {
     id: string;
     left: number;
@@ -144,10 +136,10 @@ function WeatherHero({
     const count = 70;
     return Array.from({ length: count }).map((_, i) => {
       const left = Math.random() * 100;
-      const size = 6 + Math.random() * 4; // droplet size (6–10px tall)
-      const delay = Math.random() * 2; // start time offset
-      const duration = 0.9 + Math.random() * 0.7; // 0.9–1.6s speed
-      const slant = -10 + Math.random() * 6; // little wind slant
+      const size = 6 + Math.random() * 4; 
+      const delay = Math.random() * 2; 
+      const duration = 0.9 + Math.random() * 0.7; 
+      const slant = -10 + Math.random() * 6; 
       return { id: `drop-${i}`, left, size, delay, duration, slant };
     });
   }, [isCurrentlyRaining]);
