@@ -167,7 +167,7 @@ export function Navbar({
             </div>
           </motion.div>
         </div>
-        <div className="relative ml-2 hidden md:block" ref={containerRef}>
+        <div className="relative ml-2" ref={containerRef}>
           <motion.div
             className={`flex items-center gap-1.5 rounded-md bg-neutral-600 px-2 py-3 cursor-pointer select-none ${
               favOpen ? "ring-2 ring-white" : ""
@@ -179,13 +179,19 @@ export function Navbar({
             onClick={() => setFavOpen((s) => !s)}
           >
             <CiStar size={18} />
-            <span className="font-medium text-sm">Favorites</span>
+            <span className="font-medium text-sm hidden md:block">
+              Favorites
+            </span>
             {count > 0 && (
               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                 {count}
               </span>
             )}
-            <motion.span whileTap={{ rotate: 0 }}>
+            <motion.span
+              variants={chevronRotate}
+              initial="closed"
+              animate={favOpen ? "open" : "closed"}
+            >
               <BiChevronDown size={18} />
             </motion.span>
           </motion.div>
