@@ -108,18 +108,54 @@ function WeatherHero({
   const currentPrecipProb =
     weather?.properties?.precipitation_probability ?? null;
 
+  // If properties don't include precipitation data on initial load, try to
+  // fallback to the matching hourly item (closest to current.time).
+  function findHourlyIndexForCurrent() {
+    if (!weather || !weather.hourly || !weather.current) return -1;
+    const currentTime = weather.current.time;
+    let bestIdx = -1;
+    let bestDiff = Infinity;
+    for (let i = 0; i < weather.hourly.length; i++) {
+      const t = weather.hourly[i].time;
+      const dt = Math.abs(
+        new Date(t).getTime() - new Date(currentTime).getTime()
+      );
+      if (isNaN(dt)) continue;
+      if (dt < bestDiff) {
+        bestDiff = dt;
+        bestIdx = i;
+      }
+    }
+    return bestIdx;
+  }
+
+  const hourlyIdx = findHourlyIndexForCurrent();
+  const hourlyPrecip =
+    hourlyIdx >= 0 && weather?.hourly?.[hourlyIdx]?.precipitation != null
+      ? weather.hourly[hourlyIdx].precipitation ?? null
+      : null;
+  const hourlyPrecipProb =
+    hourlyIdx >= 0 &&
+    weather?.hourly?.[hourlyIdx]?.precipitation_probability != null
+      ? weather.hourly[hourlyIdx].precipitation_probability ?? null
+      : null;
+
   const isCurrentlyRaining = (() => {
     if (!isRain(code)) return false;
     if (currentPrecipProb !== null) return currentPrecipProb >= 90;
+    if (hourlyPrecipProb !== null) return hourlyPrecipProb >= 90;
 
     if (currentPrecip !== null) return currentPrecip > 0;
+    if (hourlyPrecip !== null) return hourlyPrecip > 0;
     return false;
   })();
 
   const isCurrentlyDrizzling = (() => {
     if (!isDrizzle(code)) return false;
     if (currentPrecip !== null) return currentPrecip > 0;
-    if (currentPrecipProb !== null) return currentPrecipProb >= 35; // conservative
+    if (hourlyPrecip !== null) return hourlyPrecip > 0;
+    if (currentPrecipProb !== null) return currentPrecipProb >= 35; 
+    if (hourlyPrecipProb !== null) return hourlyPrecipProb >= 35;
     return false;
   })();
 
@@ -136,10 +172,10 @@ function WeatherHero({
     const count = 70;
     return Array.from({ length: count }).map((_, i) => {
       const left = Math.random() * 100;
-      const size = 6 + Math.random() * 4; 
-      const delay = Math.random() * 2; 
-      const duration = 0.9 + Math.random() * 0.7; 
-      const slant = -10 + Math.random() * 6; 
+      const size = 6 + Math.random() * 4;
+      const delay = Math.random() * 2;
+      const duration = 0.9 + Math.random() * 0.7;
+      const slant = -10 + Math.random() * 6;
       return { id: `drop-${i}`, left, size, delay, duration, slant };
     });
   }, [isCurrentlyRaining]);
