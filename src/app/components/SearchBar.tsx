@@ -26,6 +26,7 @@ type Props = {
   onOpen?: () => void;
   autoFocus?: boolean;
   closeOnOutsideClick?: boolean;
+  suppressSuggestions?: boolean;
 };
 
 declare global {
@@ -63,6 +64,7 @@ export default function SearchBar({
   onOpen,
   autoFocus,
   closeOnOutsideClick,
+  suppressSuggestions = false,
 }: Props) {
   const hasQuery = query && query.trim().length > 0;
   const [hideList, setHideList] = React.useState(false);
@@ -70,7 +72,8 @@ export default function SearchBar({
   const recognitionRef = React.useRef<SpeechRecognition | null>(null);
   const inputRef = React.useRef<HTMLInputElement | null>(null);
 
-  const showList = (suggestionLoading || hasQuery) && !hideList;
+  const showList =
+    !suppressSuggestions && (suggestionLoading || hasQuery) && !hideList;
 
   React.useEffect(() => {
     setHideList(false);

@@ -25,6 +25,42 @@ import {
 import { useMemo, memo } from "react";
 import { WeatherPayload } from "../api/open-meto";
 import { convertTemp } from "./utils";
+import { CiStar } from "react-icons/ci";
+import { useFavorites } from "./FavoritesContext";
+import { useCallback } from "react";
+
+function HeroFavoriteStar({
+  location,
+  size = 20,
+}: {
+  location: string;
+  size?: number;
+}) {
+  const { addFavorite } = useFavorites();
+
+  const onClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (!location) return;
+      addFavorite({ name: location });
+    },
+    [addFavorite, location]
+  );
+
+  return (
+    <button
+      onClick={onClick}
+      aria-label="add-favorite"
+      className="relative inline-flex items-center justify-center"
+    >
+      <CiStar
+        size={size}
+        className="cursor-pointer hover:opacity-90 text-white"
+      />
+      {/* Hero star does not show the favorites count; navbar will show it */}
+    </button>
+  );
+}
 
 type Props = {
   weather: WeatherPayload | null;
@@ -154,7 +190,7 @@ function WeatherHero({
     if (!isDrizzle(code)) return false;
     if (currentPrecip !== null) return currentPrecip > 0;
     if (hourlyPrecip !== null) return hourlyPrecip > 0;
-    if (currentPrecipProb !== null) return currentPrecipProb >= 35; 
+    if (currentPrecipProb !== null) return currentPrecipProb >= 35;
     if (hourlyPrecipProb !== null) return hourlyPrecipProb >= 35;
     return false;
   })();
@@ -341,8 +377,9 @@ function WeatherHero({
           )}
 
           <div className="flex flex-col gap-3 text-center mt-[41px] relative z-10">
-            <h2 className="font-bold text-[28px]">
+            <h2 className="font-bold text-[28px] flex items-center gap-2 justify-center">
               <span>{loading ? "--" : location || "Here"}</span>
+              <HeroFavoriteStar location={location} />
             </h2>
             <p className="font-medium text-lg opacity-80">
               {loading
@@ -511,8 +548,9 @@ function WeatherHero({
           )}
 
           <div className="relative z-10">
-            <h2 className="font-bold text-xl">
+            <h2 className="font-bold text-xl flex items-center gap-2">
               <span>{loading ? "--" : location || "Unknown location"}</span>
+              <HeroFavoriteStar location={location} size={30} />
             </h2>
             <p className="font-normal text-lg text-neutral-300">
               {loading
