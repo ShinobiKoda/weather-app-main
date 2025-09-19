@@ -117,7 +117,13 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   }
 
   function removeFavorite(id: string) {
+    const removed = favorites.find((f) => f.id === id);
     setFavorites((s) => s.filter((f) => f.id !== id));
+    if (removed) {
+      setLastToastMessage(`Removed ${removed.name} from favorites`);
+      setIsToastVisible(true);
+      window.setTimeout(() => setIsToastVisible(false), 2200);
+    }
   }
 
   const value: FavoritesContextValue = {

@@ -37,15 +37,36 @@ function HeroFavoriteStar({
   location: string;
   size?: number;
 }) {
-  const { addFavorite } = useFavorites();
+  const { addFavorite, removeFavorite, favorites } = useFavorites();
+
+  // determine whether this location is already favorited. Match by name
+  // or by included id/coords when present in favorites.
+  const isFavorited = !!favorites.find((f) => {
+    if (!location) return false;
+    if (f.name === location) return true;
+    // also allow matching by prefix (e.g. "Place, Country")
+    if (location.includes(f.name) || f.name.includes(location)) return true;
+    return false;
+  });
 
   const onClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation();
       if (!location) return;
+      if (isFavorited) {
+        // find id and remove
+        const found = favorites.find(
+          (f) =>
+            f.name === location ||
+            location.includes(f.name) ||
+            f.name.includes(location)
+        );
+        if (found) removeFavorite(found.id);
+        return;
+      }
       addFavorite({ name: location });
     },
-    [addFavorite, location]
+    [addFavorite, isFavorited, location, favorites, removeFavorite]
   );
 
   return (
@@ -54,15 +75,22 @@ function HeroFavoriteStar({
       aria-label="add-favorite"
       className="relative inline-flex items-center justify-center group transition-transform duration-150 focus:outline-none"
     >
-      {/* outline shown by default */}
+      {/* outline shown when not favorited; filled shown when favorited */}
       <AiOutlineStar
         size={size}
-        className="block text-white group-hover:hidden group-focus:hidden transition-transform duration-150"
+        className={
+          isFavorited
+            ? "hidden text-white transition-transform duration-150"
+            : "block text-white transition-transform duration-150"
+        }
       />
-      {/* filled shown on hover or focus, and scales down */}
       <AiFillStar
         size={size}
-        className="hidden text-white group-hover:block group-focus:block group-hover:scale-90 transition-transform duration-150"
+        className={
+          isFavorited
+            ? "block text-white transition-transform duration-150 scale-95"
+            : "hidden text-white transition-transform duration-150"
+        }
       />
     </button>
   );
