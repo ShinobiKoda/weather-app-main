@@ -467,7 +467,7 @@ export function HomePage() {
 
             <div className="mt-12 lg:mt-16">
               <div className="max-w-[420px] mx-auto mb-6 px-4">
-                <label className="text-sm text-neutral-300 mb-2 block">
+                <label className="text-sm text-neutral-100 mb-2 block">
                   Preview time of day
                 </label>
                 <input

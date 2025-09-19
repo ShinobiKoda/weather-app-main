@@ -25,7 +25,8 @@ import {
 import { useMemo, memo } from "react";
 import { WeatherPayload } from "../api/open-meto";
 import { convertTemp } from "./utils";
-import { CiStar } from "react-icons/ci";
+import { AiOutlineStar, AiFillStar } from "react-icons/ai";
+
 import { useFavorites } from "./FavoritesContext";
 import { useCallback } from "react";
 
@@ -51,13 +52,18 @@ function HeroFavoriteStar({
     <button
       onClick={onClick}
       aria-label="add-favorite"
-      className="relative inline-flex items-center justify-center"
+      className="relative inline-flex items-center justify-center group transition-transform duration-150 focus:outline-none"
     >
-      <CiStar
+      {/* outline shown by default */}
+      <AiOutlineStar
         size={size}
-        className="cursor-pointer hover:opacity-90 text-white"
+        className="block text-white group-hover:hidden group-focus:hidden transition-transform duration-150"
       />
-      {/* Hero star does not show the favorites count; navbar will show it */}
+      {/* filled shown on hover or focus, and scales down */}
+      <AiFillStar
+        size={size}
+        className="hidden text-white group-hover:block group-focus:block group-hover:scale-90 transition-transform duration-150"
+      />
     </button>
   );
 }
@@ -273,7 +279,6 @@ function WeatherHero({
 
           {overlayVariant &&
             (() => {
-              // Only show rain/drizzle overlays when precipitation is actually happening
               if (overlayVariant === rainOverlay && !isCurrentlyRaining)
                 return null;
               if (overlayVariant === drizzleOverlay && !isCurrentlyDrizzling)
