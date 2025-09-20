@@ -46,7 +46,6 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   }, [favorites]);
 
   async function resolveCoordsIfNeeded(name: string) {
-    // call Open-Meteo geocoding API to resolve name -> lat/lon
     try {
       const res = await fetch(
         `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
@@ -76,7 +75,6 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   }) {
     if (!item || !item.name) return;
 
-    // avoid duplicates by exact name or coordinates
     const exists = favorites.find((f) => {
       if (
         item.latitude != null &&
@@ -92,7 +90,6 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       return f.name === item.name;
     });
     if (exists) {
-      // show toast anyway
       setLastToastMessage(`${item.name} is already in favorites`);
       setIsToastVisible(true);
       window.setTimeout(() => setIsToastVisible(false), 2200);
@@ -138,7 +135,6 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   return (
     <FavoritesContext.Provider value={value}>
       {children}
-      {/* Toast rendered globally so Navbar & other components can observe isToastVisible */}
       <div className="fixed left-1/2 -translate-x-1/2 bottom-8 z-50 pointer-events-none">
         <div
           aria-live="polite"

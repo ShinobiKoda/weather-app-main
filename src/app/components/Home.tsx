@@ -386,8 +386,7 @@ export function HomePage() {
   );
 
   function retryInitialFetch() {
-    // simply re-run the initial effect logic by calling a small helper
-    // We'll attempt to refetch user's location and weather.
+
     (async () => {
       setApiError(null);
       setLoading(true);

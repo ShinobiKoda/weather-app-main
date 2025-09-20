@@ -39,8 +39,7 @@ function HeroFavoriteStar({
 }) {
   const { addFavorite, removeFavorite, favorites } = useFavorites();
 
-  // determine whether this location is already favorited. Match by name
-  // or by included id/coords when present in favorites.
+  
   const isFavorited = !!favorites.find((f) => {
     if (!location) return false;
     if (f.name === location) return true;
@@ -73,9 +72,8 @@ function HeroFavoriteStar({
     <button
       onClick={onClick}
       aria-label="add-favorite"
-      className="relative inline-flex items-center justify-center group transition-transform duration-150 focus:outline-none"
+      className="relative inline-flex items-center justify-center group transition-transform duration-150 focus:outline-none cursor-pointer"
     >
-      {/* outline shown when not favorited; filled shown when favorited */}
       <AiOutlineStar
         size={size}
         className={
@@ -148,7 +146,6 @@ function WeatherHero({
   const keyId = `${location}-${weather?.current?.time ?? "loading"}`;
 
   function pickTint(code: number) {
-    // return rgba string; alpha controls darkness
     if (code === 0 || code === 1 || code === 2 || code === 3)
       return "rgba(255,255,255,0.06)"; // light sun wash
     if (code === 45 || code === 48) return "rgba(200,200,210,0.08)"; // fog slightly light
@@ -178,8 +175,6 @@ function WeatherHero({
   const currentPrecipProb =
     weather?.properties?.precipitation_probability ?? null;
 
-  // If properties don't include precipitation data on initial load, try to
-  // fallback to the matching hourly item (closest to current.time).
   function findHourlyIndexForCurrent() {
     if (!weather || !weather.hourly || !weather.current) return -1;
     const currentTime = weather.current.time;
@@ -453,7 +448,6 @@ function WeatherHero({
           </div>
         </motion.div>
 
-        {/* Desktop card */}
         <motion.div
           className={
             loading
