@@ -74,8 +74,12 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     longitude?: number | null;
   }) {
     if (!item || !item.name) return;
+    const normalize = (n: string | undefined | null) =>
+      (n ?? "").trim().toLowerCase();
+    const normalizedNew = normalize(item.name);
 
     const exists = favorites.find((f) => {
+      // if both have coordinates, prefer coordinate-based equality (exact match)
       if (
         item.latitude != null &&
         item.longitude != null &&
@@ -87,7 +91,8 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
           Math.abs((f.longitude ?? 0) - (item.longitude ?? 0)) < 1e-6
         );
       }
-      return f.name === item.name;
+      // fallback to comparing normalized names
+      return normalize(f.name) === normalizedNew;
     });
     if (exists) {
       setLastToastMessage(`${item.name} is already in favorites`);
@@ -104,9 +109,26 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       longitude = resolved.longitude;
     }
 
-    const id = `${item.name}-${latitude ?? "na"}-${longitude ?? "na"}`;
-    const fav: FavoriteItem = { id, name: item.name, latitude, longitude };
-    setFavorites((s) => [...s, fav]);
+    // normalize stored name to trimmed version (preserve original casing except trimmed)
+    const storedName = item.name.trim();
+    const id = `${storedName}-${latitude ?? "na"}-${longitude ?? "na"}`;
+    const fav: FavoriteItem = { id, name: storedName, latitude, longitude };
+
+    // final dedupe inside state updater to avoid race conditions when multiple
+    // addFavorite calls happen concurrently
+    setFavorites((s) => {
+      const already = s.find((f) => {
+        if (fav.latitude != null && fav.longitude != null && f.latitude != null && f.longitude != null) {
+          return (
+            Math.abs((f.latitude ?? 0) - (fav.latitude ?? 0)) < 1e-6 &&
+            Math.abs((f.longitude ?? 0) - (fav.longitude ?? 0)) < 1e-6
+          );
+        }
+        return normalize(f.name) === normalize(fav.name);
+      });
+      if (already) return s; // no change
+      return [...s, fav];
+    });
 
     setLastToastMessage(`Added ${item.name} to favorites`);
     setIsToastVisible(true);
