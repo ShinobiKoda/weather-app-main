@@ -8,6 +8,7 @@ import { chevronRotate, dropdownMenu } from "../animations/motion";
 import { IoMdCheckmark } from "react-icons/io";
 import { CiStar } from "react-icons/ci";
 import { useFavorites } from "../FavoritesContext";
+import { MdOutlineDelete } from "react-icons/md";
 
 type Props = {
   tempUnit: "C" | "F";
@@ -33,7 +34,12 @@ export function Navbar({
   const [favOpen, setFavOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const { favorites: favList, count, isToastVisible } = useFavorites();
+  const {
+    favorites: favList,
+    count,
+    isToastVisible,
+    removeFavorite,
+  } = useFavorites();
 
   useEffect(() => setMounted(true), []);
 
@@ -210,15 +216,28 @@ export function Navbar({
               <ul className="space-y-2">
                 {favList.map((f) => (
                   <li key={f.id}>
-                    <button
-                      className="w-full text-left font-medium hover:bg-neutral-700 rounded-lg px-2 py-2.5 cursor-pointer"
-                      onClick={() => {
-                        if (onSelectFavorite) onSelectFavorite(f);
-                        setFavOpen(false);
-                      }}
-                    >
-                      {f.name}
-                    </button>
+                    <div className="w-full font-medium rounded-lg flex justify-between items-center">
+                      <button
+                        className="text-left flex-1 text-sm md:text-base pr-3 hover:bg-neutral-700 cursor-pointer p-1 rounded-lg px-2 py-2.5"
+                        onClick={() => {
+                          if (onSelectFavorite) onSelectFavorite(f);
+                          setFavOpen(false);
+                        }}
+                      >
+                        {f.name}
+                      </button>
+
+                      <button
+                        aria-label={`Delete ${f.name}`}
+                        className="ml-2 p-1 rounded hover:bg-neutral-700 hover:cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFavorite(f.id);
+                        }}
+                      >
+                        <MdOutlineDelete size={20} />
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
