@@ -97,7 +97,6 @@ export function HomePage() {
   const [typedTitle, setTypedTitle] = useState("");
   const [showCaret, setShowCaret] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
-  // time preview slider state: offset in hours (-12..+12)
   const [previewOffset, setPreviewOffset] = useState<number>(0);
   const [isDraggingTime, setIsDraggingTime] = useState(false);
   const releaseTimeout = useRef<number | null>(null);
@@ -118,7 +117,6 @@ export function HomePage() {
         idx += 1;
         timer = window.setTimeout(tick, 45);
       } else {
-        // finished typing, hide caret
         setShowCaret(false);
       }
     }
@@ -187,7 +185,7 @@ export function HomePage() {
         if (mounted) {
           setLocation("Unknown location");
           setApiError(
-            "Failed to fetch location or weather. Please check your network and try again."
+            "We couldn't connect to the server (API error). Please try again in a few moments.."
           );
         }
       } finally {
@@ -386,7 +384,6 @@ export function HomePage() {
   );
 
   function retryInitialFetch() {
-
     (async () => {
       setApiError(null);
       setLoading(true);
@@ -442,7 +439,24 @@ export function HomePage() {
 
         {apiError ? (
           <div className="w-full px-4 max-w-[1440px] mx-auto md:px-8 lg:px-12 mt-8">
-            <APIError message={apiError} onRetry={retryInitialFetch} />
+            <APIError
+              message={apiError}
+              onRetry={retryInitialFetch}
+              previewOffset={previewOffset}
+              onPreviewChange={(v: number) => setPreviewOffset(v)}
+              onPreviewStart={() => {
+                if (releaseTimeout.current)
+                  window.clearTimeout(releaseTimeout.current);
+                setIsDraggingTime(true);
+              }}
+              onPreviewEnd={() => {
+                setIsDraggingTime(false);
+                releaseTimeout.current = window.setTimeout(
+                  () => setPreviewOffset(0),
+                  600
+                );
+              }}
+            />
           </div>
         ) : (
           <div className="w-full px-4 max-w-[1440px] mx-auto md:px-8 lg:px-12">
