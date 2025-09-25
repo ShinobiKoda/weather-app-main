@@ -33,7 +33,8 @@ export function Navbar({
   const [open, setOpen] = useState(false);
   const [favOpen, setFavOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const settingsRef = useRef<HTMLDivElement | null>(null);
+  const favRef = useRef<HTMLDivElement | null>(null);
   const {
     favorites: favList,
     count,
@@ -46,11 +47,18 @@ export function Navbar({
   useEffect(() => {
     function handlePointerDown(e: PointerEvent) {
       const target = e.target as Node | null;
-      if (!containerRef.current) return;
-      if (target && !containerRef.current.contains(target)) {
-        setOpen(false);
-        setFavOpen(false);
+      // if click is inside either dropdown container, do nothing
+      if (
+        (settingsRef.current &&
+          target &&
+          settingsRef.current.contains(target)) ||
+        (favRef.current && target && favRef.current.contains(target))
+      ) {
+        return;
       }
+
+      setOpen(false);
+      setFavOpen(false);
     }
 
     document.addEventListener("pointerdown", handlePointerDown);
@@ -61,7 +69,7 @@ export function Navbar({
     <nav className="w-full max-w-[1440px] mx-auto p-4 md:px-8 lg:px-12 flex items-center justify-between">
       <Image src="/images/logo.svg" alt="Logo" width={150} height={100} />
       <div className="flex items-center gap-4">
-        <div className="relative" ref={containerRef}>
+        <div className="relative" ref={settingsRef}>
           <motion.div
             className={`flex items-center gap-1.5 rounded-md bg-neutral-600 px-2 py-3 cursor-pointer select-none ${
               open ? "ring-2 ring-white" : ""
@@ -173,7 +181,7 @@ export function Navbar({
             </div>
           </motion.div>
         </div>
-        <div className="relative ml-2" ref={containerRef}>
+        <div className="relative ml-2" ref={favRef}>
           <motion.div
             className={`flex items-center gap-1.5 rounded-md bg-neutral-600 px-2 py-3 cursor-pointer select-none ${
               favOpen ? "ring-2 ring-white" : ""
