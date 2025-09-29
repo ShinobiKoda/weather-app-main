@@ -1,7 +1,7 @@
 "use client";
 import { Navbar } from "./layout/Navbar";
 import { motion } from "motion/react";
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import fetchWeather, { WeatherPayload } from "../api/open-meto";
 import { fetchUserLocation } from "@/lib/fetchUserLocation";
 import { Bricolage_Grotesque } from "next/font/google";
@@ -22,45 +22,6 @@ import { formatLongDate as defaultFormatLongDate } from "./utils";
 import Background from "./Background";
 import { FavoritesProvider } from "./FavoritesContext";
 import { APIError } from "./APIError";
-
-function deriveWeatherKind(weather: WeatherPayload | null | undefined): string {
-  if (!weather) return "clear";
-  const w = weather as unknown;
-  if (typeof w !== "object" || w === null) return "clear";
-  const wObj = w as Record<string, unknown>;
-
-  let codeValue: number | string | null = null;
-
-  if ("current_weather" in wObj) {
-    const cw = wObj.current_weather as Record<string, unknown> | undefined;
-    if (cw && "weathercode" in cw) {
-      const vc = cw.weathercode as number | string | undefined;
-      if (typeof vc === "number" || typeof vc === "string") codeValue = vc;
-    }
-  }
-
-  if (codeValue == null && "hourly" in wObj) {
-    const hourly = wObj.hourly as Record<string, unknown> | undefined;
-    if (hourly && "weathercode" in hourly) {
-      const wc = hourly.weathercode as unknown;
-      if (Array.isArray(wc) && wc.length > 0) {
-        const first = wc[0];
-        if (typeof first === "number" || typeof first === "string")
-          codeValue = first as number | string;
-      }
-    }
-  }
-
-  if (codeValue == null) return "clear";
-  const c = Number(codeValue);
-  if (c === 0) return "clear";
-  if (c >= 1 && c <= 3) return "partly-cloudy";
-  if (c >= 45 && c <= 48) return "fog";
-  if ((c >= 51 && c <= 67) || (c >= 80 && c <= 82)) return "rain";
-  if (c >= 71 && c <= 77) return "snow";
-  if (c >= 95 && c <= 99) return "storm";
-  return "overcast";
-}
 
 const bricolage_grotesque = Bricolage_Grotesque({
   variable: "--font-bricolage_grotesque",
@@ -98,8 +59,6 @@ export function HomePage() {
   const [showCaret, setShowCaret] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [previewOffset, setPreviewOffset] = useState<number>(0);
-  const [isDraggingTime, setIsDraggingTime] = useState(false);
-  const releaseTimeout = useRef<number | null>(null);
 
   useEffect(() => {
     const title = titles[currentIndex] || "";
@@ -419,16 +378,7 @@ export function HomePage() {
         initial="hidden"
         animate="visible"
       >
-        {/* Background visual layer */}
-        <Background
-          kind={deriveWeatherKind(weather)}
-          forcedHour={(() => {
-            if (!isDraggingTime) return undefined as unknown as number | null;
-            const now = new Date();
-            const h = (now.getHours() + previewOffset + 24) % 24;
-            return h;
-          })()}
-        />
+        <Background />
         <Navbar
           tempUnit={tempUnit}
           setTempUnit={setTempUnit}
@@ -444,18 +394,6 @@ export function HomePage() {
               onRetry={retryInitialFetch}
               previewOffset={previewOffset}
               onPreviewChange={(v: number) => setPreviewOffset(v)}
-              onPreviewStart={() => {
-                if (releaseTimeout.current)
-                  window.clearTimeout(releaseTimeout.current);
-                setIsDraggingTime(true);
-              }}
-              onPreviewEnd={() => {
-                setIsDraggingTime(false);
-                releaseTimeout.current = window.setTimeout(
-                  () => setPreviewOffset(0),
-                  600
-                );
-              }}
             />
           </div>
         ) : (
@@ -479,49 +417,6 @@ export function HomePage() {
             </motion.h1>
 
             <div className="mt-12 lg:mt-16">
-              <div className="max-w-[420px] mx-auto mb-6 px-4">
-                <label className="text-sm text-neutral-100 mb-2 block">
-                  Preview time of day
-                </label>
-                <input
-                  type="range"
-                  min={-12}
-                  max={12}
-                  step={1}
-                  value={previewOffset}
-                  onChange={(e) => {
-                    const v = Number(e.target.value);
-                    setPreviewOffset(v);
-                  }}
-                  onMouseDown={() => {
-                    if (releaseTimeout.current)
-                      window.clearTimeout(releaseTimeout.current);
-                    setIsDraggingTime(true);
-                  }}
-                  onTouchStart={() => {
-                    if (releaseTimeout.current)
-                      window.clearTimeout(releaseTimeout.current);
-                    setIsDraggingTime(true);
-                  }}
-                  onMouseUp={() => {
-                    setIsDraggingTime(false);
-                    // animate return to now after 600ms
-                    releaseTimeout.current = window.setTimeout(
-                      () => setPreviewOffset(0),
-                      600
-                    );
-                  }}
-                  onTouchEnd={() => {
-                    setIsDraggingTime(false);
-                    releaseTimeout.current = window.setTimeout(
-                      () => setPreviewOffset(0),
-                      600
-                    );
-                  }}
-                  className="w-full"
-                  aria-label="Preview time slider"
-                />
-              </div>
               <motion.div
                 className="flex flex-col lg:flex-row lg:items-center gap-4 lg:justify-center max-w-[1024px] mx-auto md:grid md:grid-cols-[3fr_1fr] lg:hidden items-center"
                 variants={slideInFromRight}
@@ -533,8 +428,6 @@ export function HomePage() {
                   suggestions={suggestions}
                   suggestionLoading={suggestionLoading}
                   selectSuggestion={selectSuggestion}
-                  onOpen={() => setMobileSearchOpen(true)}
-                  suppressSuggestions={mobileSearchOpen}
                 />
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -545,26 +438,6 @@ export function HomePage() {
                   Search
                 </motion.button>
               </motion.div>
-
-              {/* Mobile overlay for search */}
-              {mobileSearchOpen && (
-                <div className="fixed inset-0 z-50 bg-black/40 flex items-start justify-center p-6 lg:hidden">
-                  <div className="w-full max-w-md">
-                    <SearchBar
-                      query={query}
-                      setQuery={setQuery}
-                      handleSearch={handleSearch}
-                      suggestions={suggestions}
-                      suggestionLoading={suggestionLoading}
-                      selectSuggestion={selectSuggestion}
-                      suppressSuggestions={mobileSearchOpen}
-                      onClose={() => setMobileSearchOpen(false)}
-                      autoFocus={mobileSearchOpen}
-                      closeOnOutsideClick={true}
-                    />
-                  </div>
-                </div>
-              )}
 
               <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8 min-h-[700px]">
                 <div className="mt-8 flex flex-col">

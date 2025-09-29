@@ -11,7 +11,6 @@ import {
   stormPulse,
   fadeInUp,
   fogDrift,
-  // overlays
   rainOverlay,
   drizzleOverlay,
   snowOverlay,
@@ -291,7 +290,6 @@ function WeatherHero({
           variants={bgFloat}
         >
           {loading && <div className="shimmer" />}
-          {/* tint overlay to change overall brightness based on weather */}
           <motion.div
             className="absolute inset-0 pointer-events-none"
             style={{ background: tint }}

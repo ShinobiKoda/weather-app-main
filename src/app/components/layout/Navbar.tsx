@@ -181,7 +181,7 @@ export function Navbar({
             </div>
           </motion.div>
         </div>
-        <div className="relative ml-2" ref={favRef}>
+        <div className="relative hidden lg:block" ref={favRef}>
           <motion.div
             className={`flex items-center gap-1.5 rounded-md bg-neutral-600 px-2 py-3 cursor-pointer select-none ${
               favOpen ? "ring-2 ring-white" : ""
