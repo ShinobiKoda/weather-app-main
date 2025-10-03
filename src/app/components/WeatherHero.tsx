@@ -38,7 +38,6 @@ function HeroFavoriteStar({
 }) {
   const { addFavorite, removeFavorite, favorites } = useFavorites();
 
-  
   const isFavorited = !!favorites.find((f) => {
     if (!location) return false;
     if (f.name === location) return true;
@@ -67,7 +66,9 @@ function HeroFavoriteStar({
   );
 
   return (
-    <button
+    <motion.button
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.98 }}
       onClick={onClick}
       aria-label="add-favorite"
       className="relative inline-flex items-center justify-center group transition-transform duration-150 focus:outline-none cursor-pointer"
@@ -88,7 +89,7 @@ function HeroFavoriteStar({
             : "hidden text-white transition-transform duration-150"
         }
       />
-    </button>
+    </motion.button>
   );
 }
 
@@ -404,7 +405,7 @@ function WeatherHero({
           <div className="flex flex-col gap-3 text-center mt-[41px] relative z-10">
             <h2 className="font-bold text-[28px] flex items-center gap-2 justify-center">
               <span>{loading ? "--" : location || "Here"}</span>
-              <HeroFavoriteStar location={location} size={30}/>
+              <HeroFavoriteStar location={location} size={30} />
             </h2>
             <p className="font-medium text-lg opacity-80">
               {loading
