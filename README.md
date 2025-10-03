@@ -40,9 +40,12 @@ Users should be able to:
 
 ### Screenshot
 
-<!-- screenshot here -->
+| Desktop View | Mobile View |
+| ------------ | ----------- |
+| <img width="600" alt="Weather Now Desktop" src="https://github.com/user-attachments/assets/bd19e4ec-45bd-4454-8c37-fb474e7c46af" /> | <img width="375" height="2591" alt="FireShot Capture 031 - Weather Now -  localhost" src="https://github.com/user-attachments/assets/41674cd9-7ea0-48a4-b610-3ee02736ee14" /> |
 
 ### Links
+
 
 - Solution URL: [Click Here](https://github.com/ShinobiKoda/weather-app-main)
 - Live Site URL: [Click Here](https://weather-app-main-henna.vercel.app/)
