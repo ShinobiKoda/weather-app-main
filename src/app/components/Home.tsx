@@ -381,7 +381,7 @@ export function HomePage() {
         initial="hidden"
         animate="visible"
       >
-        <Background />
+        <Background weatherCode={weather?.current.weathercode}/>
         <Navbar
           tempUnit={tempUnit}
           setTempUnit={setTempUnit}

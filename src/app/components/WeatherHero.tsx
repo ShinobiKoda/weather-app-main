@@ -42,7 +42,6 @@ function HeroFavoriteStar({
   const isFavorited = !!favorites.find((f) => {
     if (!location) return false;
     if (f.name === location) return true;
-    // also allow matching by prefix (e.g. "Place, Country")
     if (location.includes(f.name) || f.name.includes(location)) return true;
     return false;
   });

@@ -8,6 +8,7 @@ import { chevronRotate, dropdownMenu } from "../animations/motion";
 import { IoMdCheckmark } from "react-icons/io";
 import { AiFillStar } from "react-icons/ai";
 import { useFavorites } from "../FavoritesContext";
+import { IoMdClose } from "react-icons/io";
 import { MdOutlineDelete } from "react-icons/md";
 
 type Props = {
@@ -194,9 +195,9 @@ export function Navbar({
             </div>
           </motion.div>
         </div>
-        <div className="relative hidden md:block" ref={favRef}>
+        <div className="relative" ref={favRef}>
           <motion.div
-            className={`flex items-center gap-1.5 rounded-md bg-neutral-600 px-2 py-3 cursor-pointer select-none ${
+            className={`hidden md:flex items-center gap-1.5 rounded-md bg-neutral-600 px-2 py-3 cursor-pointer select-none ${
               favOpen ? "ring-2 ring-white" : ""
             } ${isToastVisible ? "animate-pulse" : ""}`}
             whileHover={{ scale: 1.02 }}
@@ -229,10 +230,35 @@ export function Navbar({
             </motion.span>
           </motion.div>
 
+          <motion.button
+            type="button"
+            className={`md:hidden relative flex items-center justify-center rounded-md bg-neutral-600 p-3 cursor-pointer select-none ${
+              favOpen ? "ring-2 ring-white" : ""
+            } ${isToastVisible ? "animate-pulse" : ""}`}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            aria-label="Open favorites"
+            aria-expanded={favOpen}
+            onClick={() =>
+              setFavOpen((s) => {
+                const next = !s;
+                if (next) setOpen(false);
+                return next;
+              })
+            }
+          >
+            <AiFillStar size={20} />
+            {count > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center">
+                {count}
+              </span>
+            )}
+          </motion.button>
+
           <motion.div
             className={`absolute right-0 mt-2 bg-neutral-800 border border-neutral-600 rounded-xl px-2 py-4 min-w-[214px] z-50 ${
               favOpen ? "pointer-events-auto" : "pointer-events-none"
-            } `}
+            } hidden md:block`}
             initial={false}
             animate={favOpen ? { opacity: 1, y: 0 } : { opacity: 0, y: -6 }}
             transition={{ duration: 0.18 }}
@@ -253,7 +279,6 @@ export function Navbar({
                       >
                         {f.name}
                       </button>
-
                       <button
                         aria-label={`Delete ${f.name}`}
                         className="ml-2 p-1 rounded hover:bg-neutral-700 hover:cursor-pointer"
@@ -270,6 +295,76 @@ export function Navbar({
               </ul>
             )}
           </motion.div>
+
+          {favOpen && (
+            <motion.div
+              className="md:hidden fixed inset-0 z-[60] flex items-start justify-center"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <div
+                className="absolute inset-0 bg-black/50"
+                onClick={() => setFavOpen(false)}
+                aria-hidden="true"
+              />
+              <motion.div
+                className="relative mt-24 w-[90%] max-w-sm max-h-[60vh] overflow-y-auto bg-neutral-800 border border-neutral-600 rounded-xl p-4 shadow-xl"
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 20, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 260, damping: 24 }}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Favorites"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-lg flex items-center gap-2">
+                    <AiFillStar /> Favorites
+                  </h3>
+                  <button
+                    className="text-sm px-2 py-1 rounded bg-neutral-700 hover:bg-neutral-600"
+                    onClick={() => setFavOpen(false)}
+                  >
+                    <IoMdClose size={20}/>
+                  </button>
+                </div>
+                {favList.length === 0 ? (
+                  <div className="text-sm text-neutral-400">
+                    No favorites added yet.
+                  </div>
+                ) : (
+                  <ul className="space-y-2">
+                    {favList.map((f) => (
+                      <li key={f.id}>
+                        <div className="w-full font-medium rounded-lg flex justify-between items-center">
+                          <button
+                            className="text-left flex-1 text-sm pr-3 hover:bg-neutral-700 cursor-pointer p-1 rounded-lg px-2 py-2.5"
+                            onClick={() => {
+                              if (onSelectFavorite) onSelectFavorite(f);
+                              setFavOpen(false);
+                            }}
+                          >
+                            {f.name}
+                          </button>
+                          <button
+                            aria-label={`Delete ${f.name}`}
+                            className="ml-2 p-1 rounded hover:bg-neutral-700 hover:cursor-pointer"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeFavorite(f.id);
+                            }}
+                          >
+                            <MdOutlineDelete size={20} />
+                          </button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
         </div>
       </div>
     </nav>
