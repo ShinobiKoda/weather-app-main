@@ -6,7 +6,7 @@ import { motion } from "motion/react";
 import { useState, useEffect, useRef } from "react";
 import { chevronRotate, dropdownMenu } from "../animations/motion";
 import { IoMdCheckmark } from "react-icons/io";
-import { CiStar } from "react-icons/ci";
+import { AiFillStar } from "react-icons/ai";
 import { useFavorites } from "../FavoritesContext";
 import { MdOutlineDelete } from "react-icons/md";
 
@@ -45,25 +45,32 @@ export function Navbar({
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
-    function handlePointerDown(e: PointerEvent) {
+    function handleOutside(e: Event) {
       const target = e.target as Node | null;
-      // if click is inside either dropdown container, do nothing
-      if (
-        (settingsRef.current &&
-          target &&
-          settingsRef.current.contains(target)) ||
-        (favRef.current && target && favRef.current.contains(target))
-      ) {
-        return;
+      if (target) {
+        if (settingsRef.current && settingsRef.current.contains(target)) return;
+        if (favRef.current && favRef.current.contains(target)) return;
       }
-
-      setOpen(false);
-      setFavOpen(false);
+      if (open) setOpen(false);
+      if (favOpen) setFavOpen(false);
     }
 
-    document.addEventListener("pointerdown", handlePointerDown);
-    return () => document.removeEventListener("pointerdown", handlePointerDown);
-  }, []);
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        if (open) setOpen(false);
+        if (favOpen) setFavOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleOutside);
+    document.addEventListener("touchstart", handleOutside, { passive: true });
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleOutside);
+      document.removeEventListener("touchstart", handleOutside);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [open, favOpen]);
 
   return (
     <nav className="w-full max-w-[1440px] mx-auto p-4 md:px-8 lg:px-12 flex items-center justify-between">
@@ -74,7 +81,13 @@ export function Navbar({
             className={`flex items-center gap-1.5 rounded-md bg-neutral-600 px-2 py-3 cursor-pointer select-none ${
               open ? "ring-2 ring-white" : ""
             }`}
-            onClick={() => setOpen((s) => !s)}
+            onClick={() =>
+              setOpen((s) => {
+                const next = !s;
+                if (next) setFavOpen(false);
+                return next;
+              })
+            }
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             role="button"
@@ -181,7 +194,7 @@ export function Navbar({
             </div>
           </motion.div>
         </div>
-        <div className="relative hidden lg:block" ref={favRef}>
+        <div className="relative hidden md:block" ref={favRef}>
           <motion.div
             className={`flex items-center gap-1.5 rounded-md bg-neutral-600 px-2 py-3 cursor-pointer select-none ${
               favOpen ? "ring-2 ring-white" : ""
@@ -190,9 +203,15 @@ export function Navbar({
             whileTap={{ scale: 0.98 }}
             role="button"
             aria-expanded={favOpen}
-            onClick={() => setFavOpen((s) => !s)}
+            onClick={() =>
+              setFavOpen((s) => {
+                const next = !s;
+                if (next) setOpen(false);
+                return next;
+              })
+            }
           >
-            <CiStar size={18} />
+            <AiFillStar size={18} />
             <span className="font-medium text-sm hidden md:block">
               Favorites
             </span>

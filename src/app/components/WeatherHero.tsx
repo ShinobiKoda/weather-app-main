@@ -405,7 +405,7 @@ function WeatherHero({
           <div className="flex flex-col gap-3 text-center mt-[41px] relative z-10">
             <h2 className="font-bold text-[28px] flex items-center gap-2 justify-center">
               <span>{loading ? "--" : location || "Here"}</span>
-              <HeroFavoriteStar location={location} />
+              <HeroFavoriteStar location={location} size={30}/>
             </h2>
             <p className="font-medium text-lg opacity-80">
               {loading

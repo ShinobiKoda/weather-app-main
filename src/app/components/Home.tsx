@@ -49,8 +49,6 @@ export function HomePage() {
   >([]);
   const [suggestionLoading, setSuggestionLoading] = useState(false);
 
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
-
   const [tempUnit, setTempUnit] = useState<"C" | "F">("C");
 
   const [windUnit, setWindUnit] = useState<"kmh" | "mph">("kmh");
@@ -138,7 +136,13 @@ export function HomePage() {
         if (loc.city && loc.country) setLocation(`${loc.city}, ${loc.country}`);
         else if (loc.city && loc.region)
           setLocation(`${loc.city}, ${loc.region}`);
-        else setLocation(`Lat: ${loc.latitude}, Lon: ${loc.longitude}`);
+        else {
+          setApiError(
+            "We couldn't determine your location name (location lookup failed). Please search manually or try again."
+          );
+          setWeather(null);
+          return;
+        }
       } catch (e) {
         console.error("Error fetching user location / weather:", e);
         if (mounted) {
@@ -165,9 +169,10 @@ export function HomePage() {
     setLoading(true);
     setApiError(null);
     try {
+      const currentQuery = query;
       const geoRes = await fetch(
         `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(
-          query
+          currentQuery
         )}&count=1`
       );
       if (!geoRes.ok) {
@@ -195,6 +200,7 @@ export function HomePage() {
         if (place && country) setLocation(`${place}, ${country}`);
         else if (first.name) setLocation(String(first.name));
       } catch {}
+      setQuery("");
     } catch (e) {
       console.error(e);
       setApiError("Search failed due to a network or API error.");
@@ -320,10 +326,7 @@ export function HomePage() {
           if (!first) return;
           const lat = Number(first.latitude);
           const lon = Number(first.longitude);
-          // close mobile search overlay (if open) so UI doesn't block
-          try {
-            setMobileSearchOpen(false);
-          } catch {}
+
           await selectSuggestion({
             id: `${lat}-${lon}`,
             name: d.name,
@@ -433,7 +436,8 @@ export function HomePage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="p-4 rounded-xl bg-blue-500 w-full lg:w-34 text-xl font-medium"
-                  onClick={() => setMobileSearchOpen(true)}
+                  onClick={handleSearch}
+                  aria-label="run search"
                 >
                   Search
                 </motion.button>
@@ -455,7 +459,6 @@ export function HomePage() {
                           suggestions={suggestions}
                           suggestionLoading={suggestionLoading}
                           selectSuggestion={selectSuggestion}
-                          suppressSuggestions={mobileSearchOpen}
                         />
                       </motion.div>
                     </div>

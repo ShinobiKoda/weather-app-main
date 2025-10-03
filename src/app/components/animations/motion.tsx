@@ -84,6 +84,20 @@ export const bounce: Variants = {
   },
 };
 
+export const notFoundBounce: Variants = {
+  hidden: { y: 0, opacity: 0.9 },
+  visible: {
+    y: [0, -12, 0],
+    opacity: [0.9, 1, 0.9],
+    transition: {
+      duration: 1.1,
+      ease: "easeInOut",
+      repeat: Infinity,
+      repeatType: "loop",
+    },
+  },
+};
+
 export const scaleOnHover: Variants = {
   hidden: { scale: 1 },
   visible: {
@@ -224,7 +238,6 @@ export const chevronRotate: Variants = {
   open: { rotate: 180, transition: { duration: 0.28, ease: "easeInOut" } },
 };
 
-// Blinking caret used with typewriter-style headings
 export const caretBlink: Variants = {
   hidden: { opacity: 0 },
   visible: {
@@ -268,15 +281,13 @@ export const cloudDrift: Variants = {
   },
 };
 
-// Parallax cloud layer variants with slightly different speeds
 export const cloudLayerSlow: Variants = {
   hidden: { x: "-30%", opacity: 0.9 },
   visible: (custom: number = 0) => ({
-    // move from well left of screen to off the right, then loop
     x: ["-30%", "110%"],
     opacity: [0.88, 0.95],
     transition: {
-      duration: 38 + custom, // slowest, long loop
+      duration: 38 + custom, 
       ease: "linear",
       repeat: Infinity,
       repeatType: "loop",
@@ -335,21 +346,18 @@ export const drizzleFloat: Variants = {
 
 export const rainDrop: Variants = {
   hidden: { y: -100, opacity: 0 },
-  // Use viewport-relative motion so drops travel the full hero height and past the bottom
   visible: (custom: { delay: number; duration: number }) => ({
-    // start slightly above (-10vh) and move well past the bottom (110vh) so they cross the hero
     y: ["-10vh", "110vh"],
     opacity: [0, 1, 1, 0],
     transition: {
-      duration: custom.duration, // unique per drop
+      duration: custom.duration, 
       ease: "linear",
-      delay: custom.delay, // unique per drop
+      delay: custom.delay, 
       repeat: Infinity,
     },
   }),
 };
 
-// Slower, subtler lines for drizzle / partly cloudy "light fall" effect
 export const drizzleLine: Variants = {
   hidden: { y: -10, opacity: 0 },
   visible: (custom: number = 0) => ({
@@ -365,7 +373,6 @@ export const drizzleLine: Variants = {
   }),
 };
 
-// Small splatter animation played when a raindrop reaches the bottom
 export const splatter: Variants = {
   hidden: { scale: 0.6, opacity: 0, y: 0 },
   visible: (custom: number = 0) => ({
@@ -461,38 +468,8 @@ export const sunOverlay: Variants = {
   },
 };
 
-// Stars twinkling: custom is used as a small delay/seed
-export const starTwinkle: Variants = {
-  hidden: { opacity: 0 },
-  visible: (custom: number = 0) => ({
-    opacity: [0.15, 1, 0.15],
-    transition: {
-      duration: 2 + ((custom * 7) % 3),
-      ease: "easeInOut",
-      repeat: Infinity,
-      delay: custom,
-    },
-  }),
-};
 
-// Shooting star: moves quickly diagonally across the sky, repeats with a long delay
-export const shootingStar: Variants = {
-  hidden: { opacity: 0, x: -20, y: -20 },
-  visible: (custom: number = 0) => ({
-    opacity: [0, 1, 0],
-    x: ["-10%", "120%"],
-    y: ["-10%", "120%"],
-    transition: {
-      duration: 0.9,
-      ease: "easeOut",
-      repeat: Infinity,
-      delay: custom,
-      repeatDelay: 8 + (custom % 6),
-    },
-  }),
-};
 
-// Lightning flash used for storms
 export const lightningFlash: Variants = {
   hidden: { opacity: 0 },
   visible: (custom: number = 0) => ({
@@ -507,7 +484,6 @@ export const lightningFlash: Variants = {
   }),
 };
 
-// Fog blob: slow sideways drift with fade in/out
 export const fogBlob: Variants = {
   hidden: { opacity: 0 },
   visible: (custom: number = 0) => ({
@@ -522,7 +498,6 @@ export const fogBlob: Variants = {
   }),
 };
 
-// Gradient layer fade for slow color cycling (each layer will use a slightly offset seed)
 export const gradientFade: Variants = {
   hidden: { opacity: 0 },
   visible: (custom: number = 0) => ({

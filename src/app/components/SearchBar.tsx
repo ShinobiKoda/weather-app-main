@@ -288,7 +288,7 @@ export default function SearchBar({
         <div
           className={`${
             !showList ? "hidden" : ""
-          } bg-neutral-800 border border-neutral-700 rounded-xl w-full absolute p-4 left-0 bottom-full -translate-y-2 z-30 lg:top-18 lg:bottom-auto lg:translate-y-0`}
+          } bg-neutral-800 border border-neutral-700 rounded-xl w-full absolute p-4 left-0 bottom-full -translate-y-2 z-30 md:top-18 md:bottom-auto md:translate-y-0`}
           role="listbox"
           aria-label="location-suggestions"
         >
