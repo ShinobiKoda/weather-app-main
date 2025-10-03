@@ -1,13 +1,9 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 
 type Props = {
-  /**
-   * Open-Meteo weather code. Optional because initial render may not yet have fetched data.
-   * When undefined we fall back to a neutral cloudy background.
-   */
   weatherCode?: number;
 };
 
@@ -28,76 +24,89 @@ function weatherCodeToBackground(code: number | undefined) {
   return "cloudy";
 }
 
+type Particle = {
+  x: number;
+  y: number;
+  size: number;
+  delay: number;
+  duration: number;
+  color: string;
+  glow: string;
+};
+
 const Background: React.FC<Props> = ({ weatherCode }) => {
   const type = weatherCodeToBackground(weatherCode);
+  const [particles, setParticles] = useState<Particle[]>([]);
 
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 20 }).map(() => ({
+  useEffect(() => {
+    const colors = [
+      { base: "#ffe699", glow: "rgba(255, 230, 150, 0.8)" }, // soft yellow
+      { base: "#96c8ff", glow: "rgba(150, 200, 255, 0.8)" }, // blue
+      { base: "#ffb4c8", glow: "rgba(255, 180, 200, 0.8)" }, // pink
+      { base: "#c8ffc8", glow: "rgba(200, 255, 200, 0.8)" }, // mint green
+      { base: "#ffffff", glow: "rgba(255, 255, 255, 0.8)" }, // white
+    ];
+
+    const generated = Array.from({ length: 40 }).map(() => {
+      const c = colors[Math.floor(Math.random() * colors.length)];
+      return {
         x: Math.random() * 100,
         y: Math.random() * 100,
+        size: 3 + Math.random() * 4, 
         delay: Math.random() * 3,
-        duration: 2 + Math.random() * 3,
-      })),
-    []
-  );
+        duration: 4 + Math.random() * 6,
+        color: c.base,
+        glow: c.glow,
+      };
+    });
+    setParticles(generated);
+  }, []);
 
   return (
     <div
       aria-hidden="true"
       className="fixed inset-0 -z-10 w-full h-full overflow-hidden pointer-events-none bg-neutral-900"
     >
-      {type === "clear" && (
-        <>
-          {/* Blob 1 */}
-          <motion.div
-            className="absolute w-[500px] h-[500px] rounded-full bg-yellow-400/30 blur-3xl"
-            animate={{
-              x: [0, 100, -100, 0],
-              y: [0, 50, -50, 0],
-              scale: [1, 1.1, 1],
-              opacity: [0.3, 0.6, 0.3],
-            }}
-            transition={{ repeat: Infinity, duration: 20, ease: "easeInOut" }}
-            style={{ top: "20%", left: "10%" }}
-          />
-          <motion.div
-            className="absolute w-[500px] h-[500px] rounded-full bg-yellow-300/10 blur-[120px]"
-            animate={{
-              x: [0, 100, -100, 0],
-              y: [0, 50, -50, 0],
-              scale: [1, 1.2, 1],
-              opacity: [0.1, 0.3, 0.1],
-            }}
-            transition={{ repeat: Infinity, duration: 25, ease: "easeInOut" }}
-            style={{ top: "20%", left: "10%" }}
-          />
+      {/* ✨ Glowing floating particles (base ambient sparkles) */}
+      {particles.map((p, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full"
+          style={{
+            left: `${p.x}vw`,
+            top: `${p.y}vh`,
+            width: `${p.size}px`,
+            height: `${p.size}px`,
+            background: `radial-gradient(circle, ${p.color} 0%, transparent 70%)`,
+            boxShadow: `0 0 12px 4px ${p.glow}`,
+            mixBlendMode: "screen",
+          }}
+          animate={{
+            y: [p.y, p.y + 5, p.y - 5, p.y],
+            x: [p.x, p.x + 3, p.x - 3, p.x],
+            opacity: [0.3, 1, 0.3],
+            scale: [1, 1.3, 1],
+          }}
+          transition={{
+            repeat: Infinity,
+            duration: p.duration,
+            delay: p.delay,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
 
-          <motion.div
-            className="absolute w-[350px] h-[350px] rounded-full bg-yellow-500/20 blur-2xl"
-            animate={{
-              x: [0, -80, 80, 0],
-              y: [0, -40, 40, 0],
-              scale: [1, 1.15, 1],
-              opacity: [0.2, 0.5, 0.2],
-            }}
-            transition={{ repeat: Infinity, duration: 22, ease: "easeInOut" }}
-            style={{ bottom: "15%", right: "10%" }}
-          />
-          <motion.div
-            className="absolute w-[350px] h-[350px] rounded-full bg-yellow-400/10 blur-[100px]"
-            animate={{
-              x: [0, -80, 80, 0],
-              y: [0, -40, 40, 0],
-              scale: [1, 1.2, 1],
-              opacity: [0.1, 0.25, 0.1],
-            }}
-            transition={{ repeat: Infinity, duration: 27, ease: "easeInOut" }}
-            style={{ bottom: "15%", right: "10%" }}
-          />
-        </>
+      {/* ☀️ Clear → Floating Glow Blob */}
+      {type === "clear" && (
+        <motion.div
+          className="absolute w-[400px] h-[400px] rounded-full bg-yellow-400/20 blur-3xl"
+          animate={{ x: [0, 100, -100, 0], y: [0, 50, -50, 0] }}
+          transition={{ repeat: Infinity, duration: 25, ease: "easeInOut" }}
+          style={{ top: "20%", left: "10%" }}
+        />
       )}
 
+      {/* ☁️ Cloudy → Drifting Clouds */}
       {type === "cloudy" && (
         <>
           <motion.div
@@ -115,16 +124,26 @@ const Background: React.FC<Props> = ({ weatherCode }) => {
         </>
       )}
 
+      {/* 🌫 Fog → Static Mist */}
       {type === "fog" && (
         <div className="absolute inset-0 bg-white/5 backdrop-blur-3xl" />
       )}
 
+      {/* 🌧 Rain → Glowing falling streaks */}
       {type === "rain" &&
         particles.map((p, i) => (
           <motion.div
-            key={i}
-            className="absolute w-[2px] h-10 bg-blue-400/30 rounded"
-            style={{ left: `${p.x}vw`, top: "-10vh" }}
+            key={`rain-${i}`}
+            className="absolute rounded"
+            style={{
+              left: `${p.x}vw`,
+              top: "-10vh",
+              width: "2px",
+              height: "15vh",
+              background: "linear-gradient(to bottom, rgba(150,200,255,0.8), transparent)",
+              boxShadow: "0 0 8px rgba(150,200,255,0.6)",
+              mixBlendMode: "screen",
+            }}
             animate={{ y: "110vh" }}
             transition={{
               repeat: Infinity,
@@ -135,15 +154,25 @@ const Background: React.FC<Props> = ({ weatherCode }) => {
           />
         ))}
 
+      {/* ❄️ Snow → Glowing flakes */}
       {type === "snow" &&
         particles.map((p, i) => (
           <motion.div
-            key={i}
-            className="absolute w-3 h-3 bg-white/70 rounded-full"
-            style={{ left: `${p.x}vw`, top: "-5vh" }}
+            key={`snow-${i}`}
+            className="absolute rounded-full"
+            style={{
+              left: `${p.x}vw`,
+              top: "-5vh",
+              width: `${p.size + 2}px`,
+              height: `${p.size + 2}px`,
+              background: `radial-gradient(circle, white 0%, transparent 70%)`,
+              boxShadow: "0 0 10px 4px rgba(255,255,255,0.6)",
+              mixBlendMode: "screen",
+            }}
             animate={{
               y: "110vh",
               x: [p.x, p.x + 5, p.x - 5, p.x],
+              opacity: [0.8, 1, 0.8],
             }}
             transition={{
               repeat: Infinity,
@@ -154,6 +183,7 @@ const Background: React.FC<Props> = ({ weatherCode }) => {
           />
         ))}
 
+      {/* ⛈ Storm → Lightning Flashes */}
       {type === "storm" && (
         <>
           <div className="absolute inset-0 bg-black/60" />
