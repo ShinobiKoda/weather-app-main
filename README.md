@@ -40,14 +40,13 @@ Users should be able to:
 
 ### Screenshot
 
-| Desktop View | Mobile View |
-| ------------ | ----------- |
+| Desktop View                                                                                                                        | Mobile View                                                                                                                                                                   |
+| ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | <img width="600" alt="Weather Now Desktop" src="https://github.com/user-attachments/assets/bd19e4ec-45bd-4454-8c37-fb474e7c46af" /> | <img width="375" height="2591" alt="FireShot Capture 031 - Weather Now -  localhost" src="https://github.com/user-attachments/assets/41674cd9-7ea0-48a4-b610-3ee02736ee14" /> |
 
 ### Links
 
-
-- Solution URL: [Click Here](https://github.com/ShinobiKoda/weather-app-main)
+- Solution URL: [Click Here](https://www.frontendmentor.io/solutions/weather-now-nextjs-tailwind-css-framer-motion-and-open-meteo-7hnnHtgeg-)
 - Live Site URL: [Click Here](https://weather-app-main-henna.vercel.app/)
 
 ## My process
@@ -96,21 +95,6 @@ async function showWeather() {
 
 showWeather();
 ```
-
-Location resolution flow (simplified):
-
-```mermaid
-flowchart LR
-  A[Page Load] --> B[IP Lookup ipapi.co]
-  B -->|Success| C[Coords]
-  B -->|Fail| D[Browser Geolocation]
-  D -->|Success| C
-  D -->|Fail| E[Abort -> Null]
-  C --> F[Reverse Geocode (/api/nominatim proxy)]
-  F --> G[Merge (city/region/country fallback to IP data)]
-```
-
-Code: use the user location helper
 
 ```ts
 import { fetchUserLocation } from "@/lib/fetchUserLocation";
@@ -178,12 +162,6 @@ npm run dev
 
 Then open http://localhost:3000
 
-Error handling patterns:
-
-- Centralized API error message component with retry
-- Defensive optional chaining & numeric validation from external API
-- Abortable suggestion queries (debounced 300ms)
-
 Potential future improvements:
 
 - Server side pre-render with user-approx region (edge geo headers)
@@ -203,5 +181,5 @@ Potential future improvements:
 
 ## Author
 
-- Frontend Mentor - [Praise Adebiyi](https://www.frontendmentor.io/home)
+- Frontend Mentor - [Praise Adebiyi](https://www.frontendmentor.io/profile/ShinobiKoda)
 - Twitter - [sirp_xo](https://x.com/sirp_xo)
