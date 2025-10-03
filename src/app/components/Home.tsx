@@ -57,6 +57,8 @@ export function HomePage() {
   const [showCaret, setShowCaret] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [previewOffset, setPreviewOffset] = useState<number>(0);
+  const [booting, setBooting] = useState(true); // controls whether overlay is mounted
+  const [readyToHideOverlay, setReadyToHideOverlay] = useState(false); // triggers fade out animation
 
   useEffect(() => {
     const title = titles[currentIndex] || "";
@@ -138,7 +140,7 @@ export function HomePage() {
           setLocation(`${loc.city}, ${loc.region}`);
         else {
           setApiError(
-            "We couldn't determine your location name (location lookup failed). Please search manually or try again."
+            "We couldn't determine your. Please search manually or try again."
           );
           setWeather(null);
           return;
@@ -161,6 +163,15 @@ export function HomePage() {
     return () => {
       mounted = false;
     };
+  }, []);
+
+  useEffect(() => {
+    const MIN_SPLASH_MS = 1400;
+    const id = window.setTimeout(
+      () => setReadyToHideOverlay(true),
+      MIN_SPLASH_MS
+    );
+    return () => clearTimeout(id);
   }, []);
 
   async function handleSearch() {
@@ -381,7 +392,44 @@ export function HomePage() {
         initial="hidden"
         animate="visible"
       >
-        <Background weatherCode={weather?.current.weathercode}/>
+        <Background weatherCode={weather?.current.weathercode} />
+        {booting && (
+          <motion.div
+            aria-hidden="true"
+            className="fixed inset-0 z-50"
+            initial={{ opacity: 1, backdropFilter: "blur(28px)" }}
+            animate={
+              readyToHideOverlay
+                ? { opacity: 0, backdropFilter: "blur(0px)" }
+                : { opacity: 1, backdropFilter: "blur(28px)" }
+            }
+            transition={{ duration: 0.9, ease: "easeOut" }}
+            style={{
+              WebkitBackdropFilter: readyToHideOverlay
+                ? undefined
+                : "blur(28px)",
+            }}
+            onAnimationComplete={() => {
+              if (readyToHideOverlay) setBooting(false);
+            }}
+          >
+            {/* Subtle tinted layer to enhance blur perception */}
+            <div className="absolute inset-0 bg-neutral-900/40" />
+            {/* Simple centered pulse / logo shimmer (optional) */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <motion.div
+                className="w-16 h-16 rounded-full bg-blue-500/60 shadow-lg"
+                initial={{ scale: 0.8, opacity: 0.6 }}
+                animate={{ scale: [0.8, 1, 0.8], opacity: [0.6, 1, 0.6] }}
+                transition={{
+                  duration: 1.6,
+                  repeat: Infinity,
+                  ease: "easeInOut",
+                }}
+              />
+            </div>
+          </motion.div>
+        )}
         <Navbar
           tempUnit={tempUnit}
           setTempUnit={setTempUnit}

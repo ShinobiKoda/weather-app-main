@@ -32,7 +32,6 @@ Users should be able to:
 - Responsive layout for all devices
 
 ### Screenshot
-
 <!-- screenshot here -->
 
 ### Links

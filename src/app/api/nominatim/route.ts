@@ -16,7 +16,6 @@ export async function GET(req: Request) {
     const params = new URLSearchParams({ format: "jsonv2", lat, lon });
     const nomUrl = `https://nominatim.openstreetmap.org/reverse?${params.toString()}`;
 
-    // Server-side fetch to Nominatim (no CORS issues). Include a User-Agent per policy.
     const res = await fetch(nomUrl, {
       headers: {
         "User-Agent": "weather-app-main (https://example.com)",
