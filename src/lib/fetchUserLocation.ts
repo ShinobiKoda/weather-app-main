@@ -6,7 +6,10 @@ export type UserLocation = {
   country?: string;
 };
 
-async function reverseGeocode(lat: number, lon: number): Promise<Partial<UserLocation>> {
+async function reverseGeocode(
+  lat: number,
+  lon: number
+): Promise<Partial<UserLocation>> {
   try {
     const params = new URLSearchParams({
       format: "jsonv2",
@@ -14,7 +17,9 @@ async function reverseGeocode(lat: number, lon: number): Promise<Partial<UserLoc
       lon: String(lon),
     });
 
-    const res = await fetch(`/api/nominatim?${params.toString()}`, { cache: "no-store" });
+    const res = await fetch(`/api/nominatim?${params.toString()}`, {
+      cache: "no-store",
+    });
     if (!res.ok) return {};
 
     const data = await res.json();
@@ -33,7 +38,10 @@ async function reverseGeocode(lat: number, lon: number): Promise<Partial<UserLoc
 
     return {
       city: cityLike,
-      region: addr?.state || addr?.county ? String(addr.state || addr.county) : undefined,
+      region:
+        addr?.state || addr?.county
+          ? String(addr.state || addr.county)
+          : undefined,
       country: addr?.country ? String(addr.country) : undefined,
     };
   } catch (err) {
@@ -43,16 +51,13 @@ async function reverseGeocode(lat: number, lon: number): Promise<Partial<UserLoc
 }
 
 // Attempts an IP-based lookup (priority) and returns coordinates or null.
-async function ipLookup(): Promise<
-  | {
-      latitude: number;
-      longitude: number;
-      city?: string;
-      region?: string;
-      country?: string;
-    }
-  | null
-> {
+async function ipLookup(): Promise<{
+  latitude: number;
+  longitude: number;
+  city?: string;
+  region?: string;
+  country?: string;
+} | null> {
   try {
     const ipRes = await fetch("https://ipapi.co/json/", { cache: "no-store" });
     if (!ipRes.ok) return null;
@@ -64,8 +69,14 @@ async function ipLookup(): Promise<
       latitude,
       longitude,
       city: ipData.city ? String(ipData.city) : undefined,
-      region: ipData.region || ipData.region_code ? String(ipData.region || ipData.region_code) : undefined,
-      country: ipData.country_name || ipData.country ? String(ipData.country_name || ipData.country) : undefined,
+      region:
+        ipData.region || ipData.region_code
+          ? String(ipData.region || ipData.region_code)
+          : undefined,
+      country:
+        ipData.country_name || ipData.country
+          ? String(ipData.country_name || ipData.country)
+          : undefined,
     };
   } catch (err) {
     console.warn("IP lookup failed:", err);
@@ -74,8 +85,12 @@ async function ipLookup(): Promise<
 }
 
 // Attempts browser geolocation (now secondary / fallback).
-async function browserGeolocation(): Promise<{ latitude: number; longitude: number } | null> {
-  if (typeof navigator === "undefined" || !("geolocation" in navigator)) return null;
+async function browserGeolocation(): Promise<{
+  latitude: number;
+  longitude: number;
+} | null> {
+  if (typeof navigator === "undefined" || !("geolocation" in navigator))
+    return null;
   try {
     const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
       navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -97,8 +112,10 @@ async function browserGeolocation(): Promise<{ latitude: number; longitude: numb
 export async function fetchUserLocation(): Promise<UserLocation | null> {
   try {
     // 1. IP-based first (fast + no permission dialog)
-  const ipData = await ipLookup();
-    let coords = ipData ? { latitude: ipData.latitude, longitude: ipData.longitude } : null;
+    const ipData = await ipLookup();
+    let coords = ipData
+      ? { latitude: ipData.latitude, longitude: ipData.longitude }
+      : null;
 
     // 2. Fallback: precise browser geolocation if IP failed
     if (!coords) {
